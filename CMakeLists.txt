@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.10)
+project(ECS CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+
+file(GLOB_RECURSE SOURCE_FILES "${SOURCE_DIR}/*.cpp")
+add_executable(ecs ${SOURCE_FILES})
