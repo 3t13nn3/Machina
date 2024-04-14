@@ -5,10 +5,6 @@
 
 namespace ecs {
 
-// Templated class need explicit typing if method are not declared in HPP for
-// compilation typing
-template class ComponentArray<int>;
-
 template <typename T>
 void ComponentArray<T>::InsertData(Entity entity, T component) {
   assert(entityToIndex.find(entity) == entityToIndex.end() &&
@@ -51,5 +47,9 @@ template <typename T> T &ComponentArray<T>::GetData(Entity entity) {
 template <typename T> void ComponentArray<T>::EntityDestroyed(Entity entity) {
   RemoveData(entity);
 }
+
+// Templated class need explicit typing if method are not declared in HPP for
+// compilation typing
+template class ComponentArray<int>;
 
 } // namespace ecs
