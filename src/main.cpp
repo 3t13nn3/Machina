@@ -1,6 +1,7 @@
 #include "component_array.hpp"
 #include "component_manager.hpp"
 #include "entity_manager.hpp"
+
 #include <iostream>
 
 int main() {
@@ -22,11 +23,11 @@ int main() {
     ca.EntityDestroyed(e);
   }
 
-  cm.RegisterComponent<int>();
-  std::cout << int(cm.GetComponentType<int>()) << std::endl;
-  cm.AddComponent<int>(ecs::Entity{42}, 99999);
-  std::cout << cm.GetComponent<int>(ecs::Entity{42}) << std::endl;
-  cm.RemoveComponent<int>(ecs::Entity{42});
+  cm.RegisterComponent<double>();
+  std::cout << double(cm.GetComponentType<double>()) << std::endl;
+  cm.AddComponent<double>(ecs::Entity{42}, 99999.9);
+  std::cout << cm.GetComponent<double>(ecs::Entity{42}) << std::endl;
+  cm.RemoveComponent<double>(ecs::Entity{42});
   cm.EntityDestroyed(ecs::Entity{42});
   return 0;
 }

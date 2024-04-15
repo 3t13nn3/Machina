@@ -1,7 +1,8 @@
 #include "component_array.hpp"
 
-#include <array>
-#include <unordered_map>
+#include "template_type_macro.hpp"
+
+COMPILE_FOR_TYPE(INSTANTIATE_COMPONENT_ARRAY_FOR_TYPE)
 
 namespace ecs {
 
@@ -47,9 +48,5 @@ template <typename T> T &ComponentArray<T>::GetData(Entity entity) {
 template <typename T> void ComponentArray<T>::EntityDestroyed(Entity entity) {
   RemoveData(entity);
 }
-
-// Templated class need explicit typing if method are not declared in HPP for
-// compilation typing
-template class ComponentArray<int>;
 
 } // namespace ecs
