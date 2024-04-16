@@ -31,7 +31,7 @@ template <typename T> void ComponentArray<T>::RemoveData(Entity entity) {
   componentArray[removedEntityIndex] = componentArray[LastEntityIndex];
 
   // update map to keep the 1-1 relation between the new index and entity
-  Entity lastElement = componentArray[removedEntityIndex];
+  Entity lastElement = indexToEntity[removedEntityIndex];
   entityToIndex[lastElement] = removedEntityIndex;
   indexToEntity[removedEntityIndex] = lastElement;
 

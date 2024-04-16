@@ -13,3 +13,6 @@ file(GLOB_RECURSE SOURCE_FILES "${SOURCE_DIR}/*.cpp")
 file(GLOB_RECURSE HEADER_FILES "${SOURCE_DIR}/*.hpp")
 
 add_executable(ecs ${SOURCE_FILES} ${HEADER_FILES})
+
+find_package(glm REQUIRED)
+include_directories(${GLM_INCLUDE_DIRS})

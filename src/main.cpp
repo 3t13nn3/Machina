@@ -2,19 +2,17 @@
 
 #include <iostream>
 
+ecs::Centralizer c{};
+
 int main() {
 
-  ecs::Centralizer c{};
-
-  c.RegisterComponent<int>();
-  c.RegisterComponent<double>();
+  c.RegisterComponent<ecs::Transform>();
 
   std::shared_ptr<ecs::PhysicsSystem> sys =
       c.RegisterSystem<ecs::PhysicsSystem>();
 
   ecs::Signature sign;
-  sign.set(c.GetComponentType<int>());
-  sign.set(c.GetComponentType<double>());
+  sign.set(c.GetComponentType<Transform>());
 
   c.SetSystemSignature<ecs::PhysicsSystem>(sign);
 
@@ -22,15 +20,13 @@ int main() {
   for (auto &e : entities) {
     e = c.CreateEntity();
 
-    c.AddComponent(e, int{});
-    c.AddComponent(e, double{});
+    c.AddComponent(e, Transform{});
   }
 
-  /*
-  graphicloop() {
+  while (true) {
     sys->Update();
+    std::cout << c.GetComponent<Transform>(0).position.x << std::endl;
   }
-  */
 
   std::cout << "Machina !" << std::endl;
 

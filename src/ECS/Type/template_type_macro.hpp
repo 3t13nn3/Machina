@@ -3,10 +3,12 @@
 #include "../Base/component_manager.hpp"
 #include "../Systems/physics_system.hpp"
 
+#include "../Components/transform.hpp"
+
 using namespace ecs;
 
 // Define each type at compile time for the template class
-#define COMPILE_FOR_COMPONENT(Types) Types(int) Types(double)
+#define COMPILE_FOR_COMPONENT(Types) Types(Transform)
 
 #define INSTANTIATE_COMPONENT_ARRAY_FOR_TYPE(Type)                             \
   template class ComponentArray<Type>;
