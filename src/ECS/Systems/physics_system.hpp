@@ -6,7 +6,7 @@
 
 namespace ecs {
 class PhysicsSystem : public System {
-public:
-  void Update();
+  public:
+	void Update();
 };
 } // namespace ecs

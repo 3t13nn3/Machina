@@ -13,6 +13,10 @@
 #include "Type/ecs_type.hpp"
 #include "Type/template_type_macro.hpp"
 
+#include "Components/camera.hpp"
+#include "Components/gravity.hpp"
+#include "Components/pipeline.hpp"
+#include "Components/rigid_body.hpp"
 #include "Components/transform.hpp"
 
 #endif // ECS_HPP
