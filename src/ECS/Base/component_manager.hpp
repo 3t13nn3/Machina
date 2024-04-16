@@ -1,7 +1,7 @@
 #pragma once
 
+#include "../Type/ecs_type.hpp"
 #include "component_array.hpp"
-#include "ecs_type.hpp"
 
 #include <cassert>
 #include <memory>

@@ -4,7 +4,7 @@
 #include <cassert>
 #include <queue>
 
-#include "ecs_type.hpp"
+#include "../Type/ecs_type.hpp"
 
 namespace ecs {
 class EntityManager {
@@ -13,7 +13,7 @@ public:
 
   Entity CreateEntity();
 
-  void DeleteEntity(Entity entity);
+  void DestroyEntity(Entity entity);
 
   void SetSignature(Entity entity, Signature signature);
 

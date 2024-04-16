@@ -1,8 +1,8 @@
 #include "component_manager.hpp"
 
-#include "template_type_macro.hpp"
+#include "../Type/template_type_macro.hpp"
 
-COMPILE_FOR_TYPE(INSTANTIATE_COMPONENT_MANAGER_FOR_TYPE)
+COMPILE_FOR_COMPONENT(INSTANTIATE_COMPONENT_MANAGER_FOR_TYPE)
 
 namespace ecs {
 

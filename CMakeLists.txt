@@ -7,5 +7,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
+include_directories(SYSTEM "${SOURCE_DIR}/ECS")
+
 file(GLOB_RECURSE SOURCE_FILES "${SOURCE_DIR}/*.cpp")
-add_executable(ecs ${SOURCE_FILES})
+file(GLOB_RECURSE HEADER_FILES "${SOURCE_DIR}/*.hpp")
+
+add_executable(ecs ${SOURCE_FILES} ${HEADER_FILES})

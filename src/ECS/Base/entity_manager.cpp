@@ -20,10 +20,10 @@ Entity EntityManager::CreateEntity() {
   return curr;
 }
 
-void EntityManager::DeleteEntity(Entity entity) {
+void EntityManager::DestroyEntity(Entity entity) {
   // check if the current entity exist
   assert(entity < MAX_ENTITIES &&
-         "DeleteEntity : Entity may be already destroyed or out of range.");
+         "DestroyEntity : Entity may be already destroyed or out of range.");
 
   // set all its bit field to 0
   signatures[entity].reset();

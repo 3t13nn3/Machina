@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecs_type.hpp"
+#include "../Type/ecs_type.hpp"
 
 #include <array>
 #include <cassert>

@@ -1,33 +1,38 @@
-#include "component_array.hpp"
-#include "component_manager.hpp"
-#include "entity_manager.hpp"
+#include "ECS/ECS.hpp"
 
 #include <iostream>
 
 int main() {
-  ecs::EntityManager em{};
-  ecs::ComponentArray<int> ca{};
-  ecs::ComponentManager cm{};
 
-  for (ecs::Entity e{0}; e < ecs::MAX_ENTITIES; ++e) {
-    em.CreateEntity();
-    em.SetSignature(e, ecs::Signature(e));
-    // std::cout << em.GetSignature(e) << std::endl;
-    ca.InsertData(e, int(e));
-    ca.RemoveData(e);
-    // std::cout << ca.GetData(e) << std::endl;
+  ecs::Centralizer c{};
+
+  c.RegisterComponent<int>();
+  c.RegisterComponent<double>();
+
+  std::shared_ptr<ecs::PhysicsSystem> sys =
+      c.RegisterSystem<ecs::PhysicsSystem>();
+
+  ecs::Signature sign;
+  sign.set(c.GetComponentType<int>());
+  sign.set(c.GetComponentType<double>());
+
+  c.SetSystemSignature<ecs::PhysicsSystem>(sign);
+
+  std::vector<ecs::Entity> entities(ecs::MAX_ENTITIES);
+  for (auto &e : entities) {
+    e = c.CreateEntity();
+
+    c.AddComponent(e, int{});
+    c.AddComponent(e, double{});
   }
 
-  for (ecs::Entity e{0}; e < ecs::MAX_ENTITIES; ++e) {
-    em.DeleteEntity(e);
-    ca.EntityDestroyed(e);
+  /*
+  graphicloop() {
+    sys->Update();
   }
+  */
 
-  cm.RegisterComponent<double>();
-  std::cout << double(cm.GetComponentType<double>()) << std::endl;
-  cm.AddComponent<double>(ecs::Entity{42}, 99999.9);
-  std::cout << cm.GetComponent<double>(ecs::Entity{42}) << std::endl;
-  cm.RemoveComponent<double>(ecs::Entity{42});
-  cm.EntityDestroyed(ecs::Entity{42});
+  std::cout << "Machina !" << std::endl;
+
   return 0;
 }
