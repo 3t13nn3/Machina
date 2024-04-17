@@ -2,6 +2,7 @@
 
 #include "../Base/centralizer.hpp"
 #include "../Base/system.hpp"
+
 #include "../Components/transform.hpp"
 
 namespace ecs {
