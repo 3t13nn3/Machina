@@ -19,21 +19,21 @@ class Renderer {
 	Renderer &operator=(const Renderer &) = delete;
 
 	VkRenderPass getSwapChainRenderPass() const {
-		return lveSwapChain->getRenderPass();
+		return mSwapChain->getRenderPass();
 	}
-	float getAspectRatio() const { return lveSwapChain->extentAspectRatio(); }
-	bool isFrameInProgress() const { return isFrameStarted; }
+	float getAspectRatio() const { return mSwapChain->extentAspectRatio(); }
+	bool isFrameInProgress() const { return mIsFrameStarted; }
 
 	VkCommandBuffer getCurrentCommandBuffer() const {
-		assert(isFrameStarted &&
+		assert(mIsFrameStarted &&
 			   "Cannot get command buffer when frame not in progress");
-		return commandBuffers[currentFrameIndex];
+		return mCommandBuffers[mCurrentFrameIndex];
 	}
 
 	int getFrameIndex() const {
-		assert(isFrameStarted &&
+		assert(mIsFrameStarted &&
 			   "Cannot get frame index when frame not in progress");
-		return currentFrameIndex;
+		return mCurrentFrameIndex;
 	}
 
 	VkCommandBuffer beginFrame();
@@ -46,13 +46,13 @@ class Renderer {
 	void freeCommandBuffers();
 	void recreateSwapChain();
 
-	Window &lveWindow;
-	Device &lveDevice;
-	std::unique_ptr<SwapChain> lveSwapChain;
-	std::vector<VkCommandBuffer> commandBuffers;
+	Window &mVuWindow;
+	Device &mVuDevice;
+	std::unique_ptr<SwapChain> mSwapChain;
+	std::vector<VkCommandBuffer> mCommandBuffers;
 
-	uint32_t currentImageIndex;
-	int currentFrameIndex{0};
-	bool isFrameStarted{false};
+	uint32_t mCurrentImageIndex;
+	int mCurrentFrameIndex{0};
+	bool mIsFrameStarted{false};
 };
 } // namespace vu

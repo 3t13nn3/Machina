@@ -27,12 +27,12 @@ class FirstApp {
   private:
 	void loadGameObjects();
 
-	Window lveWindow{WIDTH, HEIGHT, "Vulkan Tutorial"};
-	Device lveDevice{lveWindow};
-	Renderer lveRenderer{lveWindow, lveDevice};
+	Window mVuWindow{WIDTH, HEIGHT, "Vulkan Tutorial"};
+	Device mVuDevice{mVuWindow};
+	Renderer mVuRenderer{mVuWindow, mVuDevice};
 
 	// note: order of declarations matters
-	std::unique_ptr<DescriptorPool> globalPool{};
-	GameObject::Map gameObjects;
+	std::unique_ptr<DescriptorPool> mGlobalPool{};
+	GameObject::Map mGameObjects;
 };
 } // namespace vu

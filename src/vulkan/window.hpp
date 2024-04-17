@@ -14,13 +14,13 @@ class Window {
 	Window(const Window &) = delete;
 	Window &operator=(const Window &) = delete;
 
-	bool shouldClose() { return glfwWindowShouldClose(window); }
+	bool shouldClose() { return glfwWindowShouldClose(mWindow); }
 	VkExtent2D getExtent() {
-		return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
+		return {static_cast<uint32_t>(mWidth), static_cast<uint32_t>(mHeight)};
 	}
-	bool wasWindowResized() { return framebufferResized; }
-	void resetWindowResizedFlag() { framebufferResized = false; }
-	GLFWwindow *getGLFWwindow() const { return window; }
+	bool wasWindowResized() { return mFramebufferResized; }
+	void resetWindowResizedFlag() { mFramebufferResized = false; }
+	GLFWwindow *getGLFWwindow() const { return mWindow; }
 
 	void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
 
@@ -29,11 +29,11 @@ class Window {
 										  int height);
 	void initWindow();
 
-	int width;
-	int height;
-	bool framebufferResized = false;
+	int mWidth;
+	int mHeight;
+	bool mFramebufferResized = false;
 
-	std::string windowName;
-	GLFWwindow *window;
+	std::string mWindowName;
+	GLFWwindow *mWindow;
 };
 } // namespace vu

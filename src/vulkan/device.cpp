@@ -43,7 +43,7 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance,
 }
 
 // class member functions
-Device::Device(Window &window) : window{window} {
+Device::Device(Window &window) : mVuWindow{window} {
 	createInstance();
 	setupDebugMessenger();
 	createSurface();
@@ -53,15 +53,15 @@ Device::Device(Window &window) : window{window} {
 }
 
 Device::~Device() {
-	vkDestroyCommandPool(device_, commandPool, nullptr);
-	vkDestroyDevice(device_, nullptr);
+	vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
+	vkDestroyDevice(mDevice, nullptr);
 
 	if (enableValidationLayers) {
-		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+		DestroyDebugUtilsMessengerEXT(mInstance, mDebugMessenger, nullptr);
 	}
 
-	vkDestroySurfaceKHR(instance, surface_, nullptr);
-	vkDestroyInstance(instance, nullptr);
+	vkDestroySurfaceKHR(mInstance, mSurface, nullptr);
+	vkDestroyInstance(mInstance, nullptr);
 }
 
 void Device::createInstance() {
@@ -89,8 +89,8 @@ void Device::createInstance() {
 	VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
 	if (enableValidationLayers) {
 		createInfo.enabledLayerCount =
-			static_cast<uint32_t>(validationLayers.size());
-		createInfo.ppEnabledLayerNames = validationLayers.data();
+			static_cast<uint32_t>(mValidationLayers.size());
+		createInfo.ppEnabledLayerNames = mValidationLayers.data();
 
 		populateDebugMessengerCreateInfo(debugCreateInfo);
 		createInfo.pNext =
@@ -100,7 +100,7 @@ void Device::createInstance() {
 		createInfo.pNext = nullptr;
 	}
 
-	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
+	if (vkCreateInstance(&createInfo, nullptr, &mInstance) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create instance!");
 	}
 
@@ -109,31 +109,31 @@ void Device::createInstance() {
 
 void Device::pickPhysicalDevice() {
 	uint32_t deviceCount = 0;
-	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+	vkEnumeratePhysicalDevices(mInstance, &deviceCount, nullptr);
 	if (deviceCount == 0) {
 		throw std::runtime_error("failed to find GPUs with Vulkan support!");
 	}
 	std::cout << "Device count: " << deviceCount << std::endl;
 	std::vector<VkPhysicalDevice> devices(deviceCount);
-	vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+	vkEnumeratePhysicalDevices(mInstance, &deviceCount, devices.data());
 
 	for (const auto &device : devices) {
 		if (isDeviceSuitable(device)) {
-			physicalDevice = device;
+			mPhysicalDevice = device;
 			break;
 		}
 	}
 
-	if (physicalDevice == VK_NULL_HANDLE) {
+	if (mPhysicalDevice == VK_NULL_HANDLE) {
 		throw std::runtime_error("failed to find a suitable GPU!");
 	}
 
-	vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+	vkGetPhysicalDeviceProperties(mPhysicalDevice, &properties);
 	std::cout << "physical device: " << properties.deviceName << std::endl;
 }
 
 void Device::createLogicalDevice() {
-	QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+	QueueFamilyIndices indices = findQueueFamilies(mPhysicalDevice);
 
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 	std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily,
@@ -161,26 +161,26 @@ void Device::createLogicalDevice() {
 
 	createInfo.pEnabledFeatures = &deviceFeatures;
 	createInfo.enabledExtensionCount =
-		static_cast<uint32_t>(deviceExtensions.size());
-	createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+		static_cast<uint32_t>(mDeviceExtensions.size());
+	createInfo.ppEnabledExtensionNames = mDeviceExtensions.data();
 
 	// might not really be necessary anymore because device specific validation
 	// layers have been deprecated
 	if (enableValidationLayers) {
 		createInfo.enabledLayerCount =
-			static_cast<uint32_t>(validationLayers.size());
-		createInfo.ppEnabledLayerNames = validationLayers.data();
+			static_cast<uint32_t>(mValidationLayers.size());
+		createInfo.ppEnabledLayerNames = mValidationLayers.data();
 	} else {
 		createInfo.enabledLayerCount = 0;
 	}
 
-	if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device_) !=
+	if (vkCreateDevice(mPhysicalDevice, &createInfo, nullptr, &mDevice) !=
 		VK_SUCCESS) {
 		throw std::runtime_error("failed to create logical device!");
 	}
 
-	vkGetDeviceQueue(device_, indices.graphicsFamily, 0, &graphicsQueue_);
-	vkGetDeviceQueue(device_, indices.presentFamily, 0, &presentQueue_);
+	vkGetDeviceQueue(mDevice, indices.graphicsFamily, 0, &mGraphicsQueue);
+	vkGetDeviceQueue(mDevice, indices.presentFamily, 0, &mPresentQueue);
 }
 
 void Device::createCommandPool() {
@@ -192,14 +192,14 @@ void Device::createCommandPool() {
 	poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT |
 					 VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-	if (vkCreateCommandPool(device_, &poolInfo, nullptr, &commandPool) !=
+	if (vkCreateCommandPool(mDevice, &poolInfo, nullptr, &mCommandPool) !=
 		VK_SUCCESS) {
 		throw std::runtime_error("failed to create command pool!");
 	}
 }
 
 void Device::createSurface() {
-	window.createWindowSurface(instance, &surface_);
+	mVuWindow.createWindowSurface(mInstance, &mSurface);
 }
 
 bool Device::isDeviceSuitable(VkPhysicalDevice device) {
@@ -241,8 +241,8 @@ void Device::setupDebugMessenger() {
 		return;
 	VkDebugUtilsMessengerCreateInfoEXT createInfo;
 	populateDebugMessengerCreateInfo(createInfo);
-	if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr,
-									 &debugMessenger) != VK_SUCCESS) {
+	if (CreateDebugUtilsMessengerEXT(mInstance, &createInfo, nullptr,
+									 &mDebugMessenger) != VK_SUCCESS) {
 		throw std::runtime_error("failed to set up debug messenger!");
 	}
 }
@@ -254,7 +254,7 @@ bool Device::checkValidationLayerSupport() {
 	std::vector<VkLayerProperties> availableLayers(layerCount);
 	vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-	for (const char *layerName : validationLayers) {
+	for (const char *layerName : mValidationLayers) {
 		bool layerFound = false;
 
 		for (const auto &layerProperties : availableLayers) {
@@ -320,8 +320,8 @@ bool Device::checkDeviceExtensionSupport(VkPhysicalDevice device) {
 	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount,
 										 availableExtensions.data());
 
-	std::set<std::string> requiredExtensions(deviceExtensions.begin(),
-											 deviceExtensions.end());
+	std::set<std::string> requiredExtensions(mDeviceExtensions.begin(),
+											 mDeviceExtensions.end());
 
 	for (const auto &extension : availableExtensions) {
 		requiredExtensions.erase(extension.extensionName);
@@ -349,7 +349,7 @@ QueueFamilyIndices Device::findQueueFamilies(VkPhysicalDevice device) {
 			indices.graphicsFamilyHasValue = true;
 		}
 		VkBool32 presentSupport = false;
-		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface_,
+		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, mSurface,
 											 &presentSupport);
 		if (queueFamily.queueCount > 0 && presentSupport) {
 			indices.presentFamily = i;
@@ -367,27 +367,27 @@ QueueFamilyIndices Device::findQueueFamilies(VkPhysicalDevice device) {
 
 SwapChainSupportDetails Device::querySwapChainSupport(VkPhysicalDevice device) {
 	SwapChainSupportDetails details;
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface_,
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, mSurface,
 											  &details.capabilities);
 
 	uint32_t formatCount;
-	vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface_, &formatCount,
+	vkGetPhysicalDeviceSurfaceFormatsKHR(device, mSurface, &formatCount,
 										 nullptr);
 
 	if (formatCount != 0) {
 		details.formats.resize(formatCount);
-		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface_, &formatCount,
+		vkGetPhysicalDeviceSurfaceFormatsKHR(device, mSurface, &formatCount,
 											 details.formats.data());
 	}
 
 	uint32_t presentModeCount;
-	vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface_,
+	vkGetPhysicalDeviceSurfacePresentModesKHR(device, mSurface,
 											  &presentModeCount, nullptr);
 
 	if (presentModeCount != 0) {
 		details.presentModes.resize(presentModeCount);
 		vkGetPhysicalDeviceSurfacePresentModesKHR(
-			device, surface_, &presentModeCount, details.presentModes.data());
+			device, mSurface, &presentModeCount, details.presentModes.data());
 	}
 	return details;
 }
@@ -397,7 +397,7 @@ VkFormat Device::findSupportedFormat(const std::vector<VkFormat> &candidates,
 									 VkFormatFeatureFlags features) {
 	for (VkFormat format : candidates) {
 		VkFormatProperties props;
-		vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
+		vkGetPhysicalDeviceFormatProperties(mPhysicalDevice, format, &props);
 
 		if (tiling == VK_IMAGE_TILING_LINEAR &&
 			(props.linearTilingFeatures & features) == features) {
@@ -413,7 +413,7 @@ VkFormat Device::findSupportedFormat(const std::vector<VkFormat> &candidates,
 uint32_t Device::findMemoryType(uint32_t typeFilter,
 								VkMemoryPropertyFlags properties) {
 	VkPhysicalDeviceMemoryProperties memProperties;
-	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+	vkGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &memProperties);
 	for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
 		if ((typeFilter & (1 << i)) &&
 			(memProperties.memoryTypes[i].propertyFlags & properties) ==
@@ -434,12 +434,12 @@ void Device::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
 	bufferInfo.usage = usage;
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if (vkCreateBuffer(device_, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
+	if (vkCreateBuffer(mDevice, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create vertex buffer!");
 	}
 
 	VkMemoryRequirements memRequirements;
-	vkGetBufferMemoryRequirements(device_, buffer, &memRequirements);
+	vkGetBufferMemoryRequirements(mDevice, buffer, &memRequirements);
 
 	VkMemoryAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -447,23 +447,23 @@ void Device::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
 	allocInfo.memoryTypeIndex =
 		findMemoryType(memRequirements.memoryTypeBits, properties);
 
-	if (vkAllocateMemory(device_, &allocInfo, nullptr, &bufferMemory) !=
+	if (vkAllocateMemory(mDevice, &allocInfo, nullptr, &bufferMemory) !=
 		VK_SUCCESS) {
 		throw std::runtime_error("failed to allocate vertex buffer memory!");
 	}
 
-	vkBindBufferMemory(device_, buffer, bufferMemory, 0);
+	vkBindBufferMemory(mDevice, buffer, bufferMemory, 0);
 }
 
 VkCommandBuffer Device::beginSingleTimeCommands() {
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandPool = commandPool;
+	allocInfo.commandPool = mCommandPool;
 	allocInfo.commandBufferCount = 1;
 
 	VkCommandBuffer commandBuffer;
-	vkAllocateCommandBuffers(device_, &allocInfo, &commandBuffer);
+	vkAllocateCommandBuffers(mDevice, &allocInfo, &commandBuffer);
 
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -481,10 +481,10 @@ void Device::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &commandBuffer;
 
-	vkQueueSubmit(graphicsQueue_, 1, &submitInfo, VK_NULL_HANDLE);
-	vkQueueWaitIdle(graphicsQueue_);
+	vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueWaitIdle(mGraphicsQueue);
 
-	vkFreeCommandBuffers(device_, commandPool, 1, &commandBuffer);
+	vkFreeCommandBuffers(mDevice, mCommandPool, 1, &commandBuffer);
 }
 
 void Device::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer,
@@ -525,12 +525,12 @@ void Device::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width,
 void Device::createImageWithInfo(const VkImageCreateInfo &imageInfo,
 								 VkMemoryPropertyFlags properties,
 								 VkImage &image, VkDeviceMemory &imageMemory) {
-	if (vkCreateImage(device_, &imageInfo, nullptr, &image) != VK_SUCCESS) {
+	if (vkCreateImage(mDevice, &imageInfo, nullptr, &image) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create image!");
 	}
 
 	VkMemoryRequirements memRequirements;
-	vkGetImageMemoryRequirements(device_, image, &memRequirements);
+	vkGetImageMemoryRequirements(mDevice, image, &memRequirements);
 
 	VkMemoryAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -538,12 +538,12 @@ void Device::createImageWithInfo(const VkImageCreateInfo &imageInfo,
 	allocInfo.memoryTypeIndex =
 		findMemoryType(memRequirements.memoryTypeBits, properties);
 
-	if (vkAllocateMemory(device_, &allocInfo, nullptr, &imageMemory) !=
+	if (vkAllocateMemory(mDevice, &allocInfo, nullptr, &imageMemory) !=
 		VK_SUCCESS) {
 		throw std::runtime_error("failed to allocate image memory!");
 	}
 
-	if (vkBindImageMemory(device_, image, imageMemory, 0) != VK_SUCCESS) {
+	if (vkBindImageMemory(mDevice, image, imageMemory, 0) != VK_SUCCESS) {
 		throw std::runtime_error("failed to bind image memory!");
 	}
 }

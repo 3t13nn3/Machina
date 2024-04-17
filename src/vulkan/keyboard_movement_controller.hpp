@@ -21,8 +21,8 @@ class KeyboardMovementController {
 
 	void moveInPlaneXZ(GLFWwindow *window, float dt, GameObject &gameObject);
 
-	KeyMappings keys{};
-	float moveSpeed{3.f};
-	float lookSpeed{1.5f};
+	KeyMappings mKeys{};
+	float mMoveSpeed{3.f};
+	float mLookSpeed{1.5f};
 };
 } // namespace vu

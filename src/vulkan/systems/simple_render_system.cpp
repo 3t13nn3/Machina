@@ -20,13 +20,13 @@ struct SimplePushConstantData {
 
 SimpleRenderSystem::SimpleRenderSystem(Device &device, VkRenderPass renderPass,
 									   VkDescriptorSetLayout globalSetLayout)
-	: lveDevice{device} {
+	: mVuDevice{device} {
 	createPipelineLayout(globalSetLayout);
 	createPipeline(renderPass);
 }
 
 SimpleRenderSystem::~SimpleRenderSystem() {
-	vkDestroyPipelineLayout(lveDevice.device(), pipelineLayout, nullptr);
+	vkDestroyPipelineLayout(mVuDevice.device(), mPipelineLayout, nullptr);
 }
 
 void SimpleRenderSystem::createPipelineLayout(
@@ -46,30 +46,30 @@ void SimpleRenderSystem::createPipelineLayout(
 	pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
 	pipelineLayoutInfo.pushConstantRangeCount = 1;
 	pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-	if (vkCreatePipelineLayout(lveDevice.device(), &pipelineLayoutInfo, nullptr,
-							   &pipelineLayout) != VK_SUCCESS) {
+	if (vkCreatePipelineLayout(mVuDevice.device(), &pipelineLayoutInfo, nullptr,
+							   &mPipelineLayout) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create pipeline layout!");
 	}
 }
 
 void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
-	assert(pipelineLayout != nullptr &&
+	assert(mPipelineLayout != nullptr &&
 		   "Cannot create pipeline before pipeline layout");
 
 	PipelineConfigInfo pipelineConfig{};
 	Pipeline::defaultPipelineConfigInfo(pipelineConfig);
 	pipelineConfig.renderPass = renderPass;
-	pipelineConfig.pipelineLayout = pipelineLayout;
-	lvePipeline = std::make_unique<Pipeline>(
-		lveDevice, "shaders/simple_shader.vert.spv",
+	pipelineConfig.pipelineLayout = mPipelineLayout;
+	mVuPipeline = std::make_unique<Pipeline>(
+		mVuDevice, "shaders/simple_shader.vert.spv",
 		"shaders/simple_shader.frag.spv", pipelineConfig);
 }
 
 void SimpleRenderSystem::renderGameObjects(FrameInfo &frameInfo) {
-	lvePipeline->bind(frameInfo.commandBuffer);
+	mVuPipeline->bind(frameInfo.commandBuffer);
 
 	vkCmdBindDescriptorSets(frameInfo.commandBuffer,
-							VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0,
+							VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0,
 							1, &frameInfo.globalDescriptorSet, 0, nullptr);
 
 	for (auto &kv : frameInfo.gameObjects) {
@@ -80,7 +80,7 @@ void SimpleRenderSystem::renderGameObjects(FrameInfo &frameInfo) {
 		push.modelMatrix = obj.transform.mat4();
 		push.normalMatrix = obj.transform.normalMatrix();
 
-		vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout,
+		vkCmdPushConstants(frameInfo.commandBuffer, mPipelineLayout,
 						   VK_SHADER_STAGE_VERTEX_BIT |
 							   VK_SHADER_STAGE_FRAGMENT_BIT,
 						   0, sizeof(SimplePushConstantData), &push);

@@ -12,62 +12,62 @@ namespace ecs {
 class Centralizer {
   public:
 	Centralizer() {
-		componentManager = std::make_unique<ComponentManager>();
-		entityManager = std::make_unique<EntityManager>();
-		systemManager = std::make_unique<SystemManager>();
+		mComponentManager = std::make_unique<ComponentManager>();
+		mEntityManager = std::make_unique<EntityManager>();
+		mSystemManager = std::make_unique<SystemManager>();
 	}
 
-	Entity CreateEntity() { return entityManager->CreateEntity(); }
+	Entity CreateEntity() { return mEntityManager->CreateEntity(); }
 
 	void DestroyEntity(Entity entity) {
-		entityManager->DestroyEntity(entity);
-		componentManager->EntityDestroyed(entity);
-		systemManager->EntityDestroyed(entity);
+		mEntityManager->DestroyEntity(entity);
+		mComponentManager->EntityDestroyed(entity);
+		mSystemManager->EntityDestroyed(entity);
 	}
 
 	template <typename T> void RegisterComponent() {
-		componentManager->RegisterComponent<T>();
+		mComponentManager->RegisterComponent<T>();
 	}
 
 	template <typename T> void AddComponent(Entity entity, T component) {
-		componentManager->AddComponent<T>(entity, component);
+		mComponentManager->AddComponent<T>(entity, component);
 
-		Signature signature = entityManager->GetSignature(entity);
-		signature.set(componentManager->GetComponentType<T>(), true);
-		entityManager->SetSignature(entity, signature);
+		Signature signature = mEntityManager->GetSignature(entity);
+		signature.set(mComponentManager->GetComponentType<T>(), true);
+		mEntityManager->SetSignature(entity, signature);
 
-		systemManager->EntitySignatureChanged(entity, signature);
+		mSystemManager->EntitySignatureChanged(entity, signature);
 	}
 
 	template <typename T> void RemoveComponent(Entity entity) {
-		componentManager->RemoveComponent<T>(entity);
+		mComponentManager->RemoveComponent<T>(entity);
 
-		Signature signature = entityManager->GetSignature(entity);
-		signature.set(componentManager->GetComponentType<T>(), false);
-		entityManager->SetSignature(entity, signature);
+		Signature signature = mEntityManager->GetSignature(entity);
+		signature.set(mComponentManager->GetComponentType<T>(), false);
+		mEntityManager->SetSignature(entity, signature);
 
-		systemManager->EntitySignatureChanged(entity, signature);
+		mSystemManager->EntitySignatureChanged(entity, signature);
 	}
 
 	template <typename T> T &GetComponent(Entity entity) {
-		return componentManager->GetComponent<T>(entity);
+		return mComponentManager->GetComponent<T>(entity);
 	}
 
 	template <typename T> ComponentType GetComponentType() {
-		return componentManager->GetComponentType<T>();
+		return mComponentManager->GetComponentType<T>();
 	}
 
 	template <typename T> std::shared_ptr<T> RegisterSystem() {
-		return systemManager->RegisterSystem<T>();
+		return mSystemManager->RegisterSystem<T>();
 	}
 
 	template <typename T> void SetSystemSignature(Signature signature) {
-		systemManager->SetSignature<T>(signature);
+		mSystemManager->SetSignature<T>(signature);
 	}
 
   private:
-	std::unique_ptr<ComponentManager> componentManager;
-	std::unique_ptr<EntityManager> entityManager;
-	std::unique_ptr<SystemManager> systemManager;
+	std::unique_ptr<ComponentManager> mComponentManager;
+	std::unique_ptr<EntityManager> mEntityManager;
+	std::unique_ptr<SystemManager> mSystemManager;
 };
 } // namespace ecs

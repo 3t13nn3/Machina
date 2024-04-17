@@ -31,32 +31,32 @@ class Buffer {
 	VkDescriptorBufferInfo descriptorInfoForIndex(int index);
 	VkResult invalidateIndex(int index);
 
-	VkBuffer getBuffer() const { return buffer; }
-	void *getMappedMemory() const { return mapped; }
-	uint32_t getInstanceCount() const { return instanceCount; }
-	VkDeviceSize getInstanceSize() const { return instanceSize; }
-	VkDeviceSize getAlignmentSize() const { return instanceSize; }
-	VkBufferUsageFlags getUsageFlags() const { return usageFlags; }
+	VkBuffer getBuffer() const { return mBuffer; }
+	void *getMappedMemory() const { return mMapped; }
+	uint32_t getInstanceCount() const { return mInstanceCount; }
+	VkDeviceSize getInstanceSize() const { return mInstanceSize; }
+	VkDeviceSize getAlignmentSize() const { return mInstanceSize; }
+	VkBufferUsageFlags getUsageFlags() const { return mUsageFlags; }
 	VkMemoryPropertyFlags getMemoryPropertyFlags() const {
-		return memoryPropertyFlags;
+		return mMemoryPropertyFlags;
 	}
-	VkDeviceSize getBufferSize() const { return bufferSize; }
+	VkDeviceSize getBufferSize() const { return mBufferSize; }
 
   private:
 	static VkDeviceSize getAlignment(VkDeviceSize instanceSize,
 									 VkDeviceSize minOffsetAlignment);
 
-	Device &lveDevice;
-	void *mapped = nullptr;
-	VkBuffer buffer = VK_NULL_HANDLE;
-	VkDeviceMemory memory = VK_NULL_HANDLE;
+	Device &mVuDevice;
+	void *mMapped = nullptr;
+	VkBuffer mBuffer = VK_NULL_HANDLE;
+	VkDeviceMemory mMemory = VK_NULL_HANDLE;
 
-	VkDeviceSize bufferSize;
-	uint32_t instanceCount;
-	VkDeviceSize instanceSize;
-	VkDeviceSize alignmentSize;
-	VkBufferUsageFlags usageFlags;
-	VkMemoryPropertyFlags memoryPropertyFlags;
+	VkDeviceSize mBufferSize;
+	uint32_t mInstanceCount;
+	VkDeviceSize mInstanceSize;
+	VkDeviceSize mAlignmentSize;
+	VkBufferUsageFlags mUsageFlags;
+	VkMemoryPropertyFlags mMemoryPropertyFlags;
 };
 
 } // namespace vu

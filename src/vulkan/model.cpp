@@ -31,7 +31,7 @@ template <> struct hash<vu::Model::Vertex> {
 namespace vu {
 
 Model::Model(Device &device, const Model::Builder &builder)
-	: lveDevice{device} {
+	: mVuDevice{device} {
 	createVertexBuffers(builder.vertices);
 	createIndexBuffers(builder.indices);
 }
@@ -46,15 +46,15 @@ std::unique_ptr<Model> Model::createModelFromFile(Device &device,
 }
 
 void Model::createVertexBuffers(const std::vector<Vertex> &vertices) {
-	vertexCount = static_cast<uint32_t>(vertices.size());
-	assert(vertexCount >= 3 && "Vertex count must be at least 3");
-	VkDeviceSize bufferSize = sizeof(vertices[0]) * vertexCount;
+	mVertexCount = static_cast<uint32_t>(vertices.size());
+	assert(mVertexCount >= 3 && "Vertex count must be at least 3");
+	VkDeviceSize bufferSize = sizeof(vertices[0]) * mVertexCount;
 	uint32_t vertexSize = sizeof(vertices[0]);
 
 	Buffer stagingBuffer{
-		lveDevice,
+		mVuDevice,
 		vertexSize,
-		vertexCount,
+		mVertexCount,
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
 			VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -63,30 +63,30 @@ void Model::createVertexBuffers(const std::vector<Vertex> &vertices) {
 	stagingBuffer.map();
 	stagingBuffer.writeToBuffer((void *)vertices.data());
 
-	vertexBuffer = std::make_unique<Buffer>(
-		lveDevice, vertexSize, vertexCount,
+	mVertexBuffer = std::make_unique<Buffer>(
+		mVuDevice, vertexSize, mVertexCount,
 		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-	lveDevice.copyBuffer(stagingBuffer.getBuffer(), vertexBuffer->getBuffer(),
+	mVuDevice.copyBuffer(stagingBuffer.getBuffer(), mVertexBuffer->getBuffer(),
 						 bufferSize);
 }
 
 void Model::createIndexBuffers(const std::vector<uint32_t> &indices) {
-	indexCount = static_cast<uint32_t>(indices.size());
-	hasIndexBuffer = indexCount > 0;
+	mIndexCount = static_cast<uint32_t>(indices.size());
+	mHasIndexBuffer = mIndexCount > 0;
 
-	if (!hasIndexBuffer) {
+	if (!mHasIndexBuffer) {
 		return;
 	}
 
-	VkDeviceSize bufferSize = sizeof(indices[0]) * indexCount;
+	VkDeviceSize bufferSize = sizeof(indices[0]) * mIndexCount;
 	uint32_t indexSize = sizeof(indices[0]);
 
 	Buffer stagingBuffer{
-		lveDevice,
+		mVuDevice,
 		indexSize,
-		indexCount,
+		mIndexCount,
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
 			VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -95,30 +95,30 @@ void Model::createIndexBuffers(const std::vector<uint32_t> &indices) {
 	stagingBuffer.map();
 	stagingBuffer.writeToBuffer((void *)indices.data());
 
-	indexBuffer = std::make_unique<Buffer>(lveDevice, indexSize, indexCount,
-										   VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
-											   VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-										   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	mIndexBuffer = std::make_unique<Buffer>(
+		mVuDevice, indexSize, mIndexCount,
+		VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-	lveDevice.copyBuffer(stagingBuffer.getBuffer(), indexBuffer->getBuffer(),
+	mVuDevice.copyBuffer(stagingBuffer.getBuffer(), mIndexBuffer->getBuffer(),
 						 bufferSize);
 }
 
 void Model::draw(VkCommandBuffer commandBuffer) {
-	if (hasIndexBuffer) {
-		vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
+	if (mHasIndexBuffer) {
+		vkCmdDrawIndexed(commandBuffer, mIndexCount, 1, 0, 0, 0);
 	} else {
-		vkCmdDraw(commandBuffer, vertexCount, 1, 0, 0);
+		vkCmdDraw(commandBuffer, mVertexCount, 1, 0, 0);
 	}
 }
 
 void Model::bind(VkCommandBuffer commandBuffer) {
-	VkBuffer buffers[] = {vertexBuffer->getBuffer()};
+	VkBuffer buffers[] = {mVertexBuffer->getBuffer()};
 	VkDeviceSize offsets[] = {0};
 	vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
 
-	if (hasIndexBuffer) {
-		vkCmdBindIndexBuffer(commandBuffer, indexBuffer->getBuffer(), 0,
+	if (mHasIndexBuffer) {
+		vkCmdBindIndexBuffer(commandBuffer, mIndexBuffer->getBuffer(), 0,
 							 VK_INDEX_TYPE_UINT32);
 	}
 }

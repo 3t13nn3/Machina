@@ -8,7 +8,7 @@
 namespace vu {
 
 Renderer::Renderer(Window &window, Device &device)
-	: lveWindow{window}, lveDevice{device} {
+	: mVuWindow{window}, mVuDevice{device} {
 	recreateSwapChain();
 	createCommandBuffers();
 }
@@ -16,21 +16,21 @@ Renderer::Renderer(Window &window, Device &device)
 Renderer::~Renderer() { freeCommandBuffers(); }
 
 void Renderer::recreateSwapChain() {
-	auto extent = lveWindow.getExtent();
+	auto extent = mVuWindow.getExtent();
 	while (extent.width == 0 || extent.height == 0) {
-		extent = lveWindow.getExtent();
+		extent = mVuWindow.getExtent();
 		glfwWaitEvents();
 	}
-	vkDeviceWaitIdle(lveDevice.device());
+	vkDeviceWaitIdle(mVuDevice.device());
 
-	if (lveSwapChain == nullptr) {
-		lveSwapChain = std::make_unique<SwapChain>(lveDevice, extent);
+	if (mSwapChain == nullptr) {
+		mSwapChain = std::make_unique<SwapChain>(mVuDevice, extent);
 	} else {
-		std::shared_ptr<SwapChain> oldSwapChain = std::move(lveSwapChain);
-		lveSwapChain =
-			std::make_unique<SwapChain>(lveDevice, extent, oldSwapChain);
+		std::shared_ptr<SwapChain> oldSwapChain = std::move(mSwapChain);
+		mSwapChain =
+			std::make_unique<SwapChain>(mVuDevice, extent, oldSwapChain);
 
-		if (!oldSwapChain->compareSwapFormats(*lveSwapChain.get())) {
+		if (!oldSwapChain->compareSwapFormats(*mSwapChain.get())) {
 			throw std::runtime_error(
 				"Swap chain image(or depth) format has changed!");
 		}
@@ -38,32 +38,33 @@ void Renderer::recreateSwapChain() {
 }
 
 void Renderer::createCommandBuffers() {
-	commandBuffers.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
+	mCommandBuffers.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
 
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandPool = lveDevice.getCommandPool();
-	allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
+	allocInfo.commandPool = mVuDevice.getCommandPool();
+	allocInfo.commandBufferCount =
+		static_cast<uint32_t>(mCommandBuffers.size());
 
-	if (vkAllocateCommandBuffers(lveDevice.device(), &allocInfo,
-								 commandBuffers.data()) != VK_SUCCESS) {
+	if (vkAllocateCommandBuffers(mVuDevice.device(), &allocInfo,
+								 mCommandBuffers.data()) != VK_SUCCESS) {
 		throw std::runtime_error("failed to allocate command buffers!");
 	}
 }
 
 void Renderer::freeCommandBuffers() {
-	vkFreeCommandBuffers(lveDevice.device(), lveDevice.getCommandPool(),
-						 static_cast<uint32_t>(commandBuffers.size()),
-						 commandBuffers.data());
-	commandBuffers.clear();
+	vkFreeCommandBuffers(mVuDevice.device(), mVuDevice.getCommandPool(),
+						 static_cast<uint32_t>(mCommandBuffers.size()),
+						 mCommandBuffers.data());
+	mCommandBuffers.clear();
 }
 
 VkCommandBuffer Renderer::beginFrame() {
-	assert(!isFrameStarted &&
+	assert(!mIsFrameStarted &&
 		   "Can't call beginFrame while already in progress");
 
-	auto result = lveSwapChain->acquireNextImage(&currentImageIndex);
+	auto result = mSwapChain->acquireNextImage(&mCurrentImageIndex);
 	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
 		recreateSwapChain();
 		return nullptr;
@@ -73,7 +74,7 @@ VkCommandBuffer Renderer::beginFrame() {
 		throw std::runtime_error("failed to acquire swap chain image!");
 	}
 
-	isFrameStarted = true;
+	mIsFrameStarted = true;
 
 	auto commandBuffer = getCurrentCommandBuffer();
 	VkCommandBufferBeginInfo beginInfo{};
@@ -86,7 +87,7 @@ VkCommandBuffer Renderer::beginFrame() {
 }
 
 void Renderer::endFrame() {
-	assert(isFrameStarted &&
+	assert(mIsFrameStarted &&
 		   "Can't call endFrame while frame is not in progress");
 	auto commandBuffer = getCurrentCommandBuffer();
 	if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
@@ -94,34 +95,33 @@ void Renderer::endFrame() {
 	}
 
 	auto result =
-		lveSwapChain->submitCommandBuffers(&commandBuffer, &currentImageIndex);
+		mSwapChain->submitCommandBuffers(&commandBuffer, &mCurrentImageIndex);
 	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
-		lveWindow.wasWindowResized()) {
-		lveWindow.resetWindowResizedFlag();
+		mVuWindow.wasWindowResized()) {
+		mVuWindow.resetWindowResizedFlag();
 		recreateSwapChain();
 	} else if (result != VK_SUCCESS) {
 		throw std::runtime_error("failed to present swap chain image!");
 	}
 
-	isFrameStarted = false;
-	currentFrameIndex =
-		(currentFrameIndex + 1) % SwapChain::MAX_FRAMES_IN_FLIGHT;
+	mIsFrameStarted = false;
+	mCurrentFrameIndex =
+		(mCurrentFrameIndex + 1) % SwapChain::MAX_FRAMES_IN_FLIGHT;
 }
 
 void Renderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer) {
-	assert(isFrameStarted &&
+	assert(mIsFrameStarted &&
 		   "Can't call beginSwapChainRenderPass if frame is not in progress");
 	assert(commandBuffer == getCurrentCommandBuffer() &&
 		   "Can't begin render pass on command buffer from a different frame");
 
 	VkRenderPassBeginInfo renderPassInfo{};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderPassInfo.renderPass = lveSwapChain->getRenderPass();
-	renderPassInfo.framebuffer =
-		lveSwapChain->getFrameBuffer(currentImageIndex);
+	renderPassInfo.renderPass = mSwapChain->getRenderPass();
+	renderPassInfo.framebuffer = mSwapChain->getFrameBuffer(mCurrentImageIndex);
 
 	renderPassInfo.renderArea.offset = {0, 0};
-	renderPassInfo.renderArea.extent = lveSwapChain->getSwapChainExtent();
+	renderPassInfo.renderArea.extent = mSwapChain->getSwapChainExtent();
 
 	std::array<VkClearValue, 2> clearValues{};
 	clearValues[0].color = {0.01f, 0.01f, 0.01f, 1.0f};
@@ -135,19 +135,18 @@ void Renderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer) {
 	VkViewport viewport{};
 	viewport.x = 0.0f;
 	viewport.y = 0.0f;
-	viewport.width =
-		static_cast<float>(lveSwapChain->getSwapChainExtent().width);
+	viewport.width = static_cast<float>(mSwapChain->getSwapChainExtent().width);
 	viewport.height =
-		static_cast<float>(lveSwapChain->getSwapChainExtent().height);
+		static_cast<float>(mSwapChain->getSwapChainExtent().height);
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
-	VkRect2D scissor{{0, 0}, lveSwapChain->getSwapChainExtent()};
+	VkRect2D scissor{{0, 0}, mSwapChain->getSwapChainExtent()};
 	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 }
 
 void Renderer::endSwapChainRenderPass(VkCommandBuffer commandBuffer) {
-	assert(isFrameStarted &&
+	assert(mIsFrameStarted &&
 		   "Can't call endSwapChainRenderPass if frame is not in progress");
 	assert(commandBuffer == getCurrentCommandBuffer() &&
 		   "Can't end render pass on command buffer from a different frame");

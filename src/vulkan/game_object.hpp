@@ -47,7 +47,7 @@ class GameObject {
 	GameObject(GameObject &&) = default;
 	GameObject &operator=(GameObject &&) = default;
 
-	id_t getId() { return id; }
+	id_t getId() { return mId; }
 
 	glm::vec3 color{};
 	TransformComponent transform{};
@@ -57,8 +57,8 @@ class GameObject {
 	std::unique_ptr<PointLightComponent> pointLight = nullptr;
 
   private:
-	GameObject(id_t objId) : id{objId} {}
+	GameObject(id_t objId) : mId{objId} {}
 
-	id_t id;
+	id_t mId;
 };
 } // namespace vu

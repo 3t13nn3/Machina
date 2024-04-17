@@ -54,9 +54,9 @@ class Pipeline {
 	void createShaderModule(const std::vector<char> &code,
 							VkShaderModule *shaderModule);
 
-	Device &lveDevice;
-	VkPipeline graphicsPipeline;
-	VkShaderModule vertShaderModule;
-	VkShaderModule fragShaderModule;
+	Device &mVuDevice;
+	VkPipeline mGraphicsPipeline;
+	VkShaderModule mVertShaderModule;
+	VkShaderModule mFragShaderModule;
 };
 } // namespace vu

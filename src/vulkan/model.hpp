@@ -55,13 +55,13 @@ class Model {
 	void createVertexBuffers(const std::vector<Vertex> &vertices);
 	void createIndexBuffers(const std::vector<uint32_t> &indices);
 
-	Device &lveDevice;
+	Device &mVuDevice;
 
-	std::unique_ptr<Buffer> vertexBuffer;
-	uint32_t vertexCount;
+	std::unique_ptr<Buffer> mVertexBuffer;
+	uint32_t mVertexCount;
 
-	bool hasIndexBuffer = false;
-	std::unique_ptr<Buffer> indexBuffer;
-	uint32_t indexCount;
+	bool mHasIndexBuffer = false;
+	std::unique_ptr<Buffer> mIndexBuffer;
+	uint32_t mIndexCount;
 };
 } // namespace vu

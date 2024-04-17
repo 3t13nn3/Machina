@@ -26,9 +26,9 @@ class SimpleRenderSystem {
 	void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
 	void createPipeline(VkRenderPass renderPass);
 
-	Device &lveDevice;
+	Device &mVuDevice;
 
-	std::unique_ptr<Pipeline> lvePipeline;
-	VkPipelineLayout pipelineLayout;
+	std::unique_ptr<Pipeline> mVuPipeline;
+	VkPipelineLayout mPipelineLayout;
 };
 } // namespace vu

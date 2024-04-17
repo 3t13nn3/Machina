@@ -21,11 +21,11 @@
 namespace vu {
 
 FirstApp::FirstApp() {
-	globalPool = DescriptorPool::Builder(lveDevice)
-					 .setMaxSets(SwapChain::MAX_FRAMES_IN_FLIGHT)
-					 .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-								  SwapChain::MAX_FRAMES_IN_FLIGHT)
-					 .build();
+	mGlobalPool = DescriptorPool::Builder(mVuDevice)
+					  .setMaxSets(SwapChain::MAX_FRAMES_IN_FLIGHT)
+					  .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+								   SwapChain::MAX_FRAMES_IN_FLIGHT)
+					  .build();
 	loadGameObjects();
 }
 
@@ -36,12 +36,12 @@ void FirstApp::run() {
 		SwapChain::MAX_FRAMES_IN_FLIGHT);
 	for (int i = 0; i < uboBuffers.size(); i++) {
 		uboBuffers[i] = std::make_unique<Buffer>(
-			lveDevice, sizeof(GlobalUbo), 1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			mVuDevice, sizeof(GlobalUbo), 1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 		uboBuffers[i]->map();
 	}
 
-	auto globalSetLayout = DescriptorSetLayout::Builder(lveDevice)
+	auto globalSetLayout = DescriptorSetLayout::Builder(mVuDevice)
 							   .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 										   VK_SHADER_STAGE_ALL_GRAPHICS)
 							   .build();
@@ -50,16 +50,16 @@ void FirstApp::run() {
 		SwapChain::MAX_FRAMES_IN_FLIGHT);
 	for (int i = 0; i < globalDescriptorSets.size(); i++) {
 		auto bufferInfo = uboBuffers[i]->descriptorInfo();
-		DescriptorWriter(*globalSetLayout, *globalPool)
+		DescriptorWriter(*globalSetLayout, *mGlobalPool)
 			.writeBuffer(0, &bufferInfo)
 			.build(globalDescriptorSets[i]);
 	}
 
 	SimpleRenderSystem simpleRenderSystem{
-		lveDevice, lveRenderer.getSwapChainRenderPass(),
+		mVuDevice, mVuRenderer.getSwapChainRenderPass(),
 		globalSetLayout->getDescriptorSetLayout()};
 	PointLightSystem pointLightSystem{
-		lveDevice, lveRenderer.getSwapChainRenderPass(),
+		mVuDevice, mVuRenderer.getSwapChainRenderPass(),
 		globalSetLayout->getDescriptorSetLayout()};
 	Camera camera{};
 
@@ -68,7 +68,7 @@ void FirstApp::run() {
 	KeyboardMovementController cameraController{};
 
 	auto currentTime = std::chrono::high_resolution_clock::now();
-	while (!lveWindow.shouldClose()) {
+	while (!mVuWindow.shouldClose()) {
 		glfwPollEvents();
 
 		auto newTime = std::chrono::high_resolution_clock::now();
@@ -78,23 +78,23 @@ void FirstApp::run() {
 				.count();
 		currentTime = newTime;
 
-		cameraController.moveInPlaneXZ(lveWindow.getGLFWwindow(), frameTime,
+		cameraController.moveInPlaneXZ(mVuWindow.getGLFWwindow(), frameTime,
 									   viewerObject);
 		camera.setViewYXZ(viewerObject.transform.translation,
 						  viewerObject.transform.rotation);
 
-		float aspect = lveRenderer.getAspectRatio();
+		float aspect = mVuRenderer.getAspectRatio();
 		camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f,
 										100.f);
 
-		if (auto commandBuffer = lveRenderer.beginFrame()) {
-			int frameIndex = lveRenderer.getFrameIndex();
+		if (auto commandBuffer = mVuRenderer.beginFrame()) {
+			int frameIndex = mVuRenderer.getFrameIndex();
 			FrameInfo frameInfo{frameIndex,
 								frameTime,
 								commandBuffer,
 								camera,
 								globalDescriptorSets[frameIndex],
-								gameObjects};
+								mGameObjects};
 
 			// update
 			GlobalUbo ubo{};
@@ -106,42 +106,43 @@ void FirstApp::run() {
 			uboBuffers[frameIndex]->flush();
 
 			// render
-			lveRenderer.beginSwapChainRenderPass(commandBuffer);
+			mVuRenderer.beginSwapChainRenderPass(commandBuffer);
 
 			// order here matters
 			simpleRenderSystem.renderGameObjects(frameInfo);
 			pointLightSystem.render(frameInfo);
 
-			lveRenderer.endSwapChainRenderPass(commandBuffer);
-			lveRenderer.endFrame();
+			mVuRenderer.endSwapChainRenderPass(commandBuffer);
+			mVuRenderer.endFrame();
 		}
 	}
 
-	vkDeviceWaitIdle(lveDevice.device());
+	vkDeviceWaitIdle(mVuDevice.device());
 }
 
 void FirstApp::loadGameObjects() {
-	std::shared_ptr<Model> lveModel =
-		Model::createModelFromFile(lveDevice, "models/flat_vase.obj");
+	std::shared_ptr<Model> currentModel =
+		Model::createModelFromFile(mVuDevice, "models/flat_vase.obj");
 	auto flatVase = GameObject::createGameObject();
-	flatVase.model = lveModel;
+	flatVase.model = currentModel;
 	flatVase.transform.translation = {-.5f, .5f, 0.f};
 	flatVase.transform.scale = {3.f, 1.5f, 3.f};
-	gameObjects.emplace(flatVase.getId(), std::move(flatVase));
+	mGameObjects.emplace(flatVase.getId(), std::move(flatVase));
 
-	lveModel = Model::createModelFromFile(lveDevice, "models/smooth_vase.obj");
+	currentModel =
+		Model::createModelFromFile(mVuDevice, "models/smooth_vase.obj");
 	auto smoothVase = GameObject::createGameObject();
-	smoothVase.model = lveModel;
+	smoothVase.model = currentModel;
 	smoothVase.transform.translation = {.5f, .5f, 0.f};
 	smoothVase.transform.scale = {3.f, 1.5f, 3.f};
-	gameObjects.emplace(smoothVase.getId(), std::move(smoothVase));
+	mGameObjects.emplace(smoothVase.getId(), std::move(smoothVase));
 
-	lveModel = Model::createModelFromFile(lveDevice, "models/quad.obj");
+	currentModel = Model::createModelFromFile(mVuDevice, "models/quad.obj");
 	auto floor = GameObject::createGameObject();
-	floor.model = lveModel;
+	floor.model = currentModel;
 	floor.transform.translation = {0.f, .5f, 0.f};
 	floor.transform.scale = {3.f, 1.f, 3.f};
-	gameObjects.emplace(floor.getId(), std::move(floor));
+	mGameObjects.emplace(floor.getId(), std::move(floor));
 
 	std::vector<glm::vec3> lightColors{
 		{1.f, .1f, .1f}, {.1f, .1f, 1.f}, {.1f, 1.f, .1f},
@@ -156,7 +157,7 @@ void FirstApp::loadGameObjects() {
 			{0.f, -1.f, 0.f});
 		pointLight.transform.translation =
 			glm::vec3(rotateLight * glm::vec4(-1.f, -1.f, -1.f, 1.f));
-		gameObjects.emplace(pointLight.getId(), std::move(pointLight));
+		mGameObjects.emplace(pointLight.getId(), std::move(pointLight));
 	}
 }
 

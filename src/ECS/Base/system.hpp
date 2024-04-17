@@ -8,7 +8,7 @@ namespace ecs {
 
 class System {
   public:
-	std::set<Entity> entities;
+	std::set<Entity> mEntities;
 };
 
 } // namespace ecs

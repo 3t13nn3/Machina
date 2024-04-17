@@ -41,19 +41,19 @@ class Device {
 	Device(Device &&) = delete;
 	Device &operator=(Device &&) = delete;
 
-	VkCommandPool getCommandPool() { return commandPool; }
-	VkDevice device() { return device_; }
-	VkSurfaceKHR surface() { return surface_; }
-	VkQueue graphicsQueue() { return graphicsQueue_; }
-	VkQueue presentQueue() { return presentQueue_; }
+	VkCommandPool getCommandPool() { return mCommandPool; }
+	VkDevice device() { return mDevice; }
+	VkSurfaceKHR surface() { return mSurface; }
+	VkQueue graphicsQueue() { return mGraphicsQueue; }
+	VkQueue presentQueue() { return mPresentQueue; }
 
 	SwapChainSupportDetails getSwapChainSupport() {
-		return querySwapChainSupport(physicalDevice);
+		return querySwapChainSupport(mPhysicalDevice);
 	}
 	uint32_t findMemoryType(uint32_t typeFilter,
 							VkMemoryPropertyFlags properties);
 	QueueFamilyIndices findPhysicalQueueFamilies() {
-		return findQueueFamilies(physicalDevice);
+		return findQueueFamilies(mPhysicalDevice);
 	}
 	VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates,
 								 VkImageTiling tiling,
@@ -94,20 +94,20 @@ class Device {
 	bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 
-	VkInstance instance;
-	VkDebugUtilsMessengerEXT debugMessenger;
-	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-	Window &window;
-	VkCommandPool commandPool;
+	VkInstance mInstance;
+	VkDebugUtilsMessengerEXT mDebugMessenger;
+	VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
+	Window &mVuWindow;
+	VkCommandPool mCommandPool;
 
-	VkDevice device_;
-	VkSurfaceKHR surface_;
-	VkQueue graphicsQueue_;
-	VkQueue presentQueue_;
+	VkDevice mDevice;
+	VkSurfaceKHR mSurface;
+	VkQueue mGraphicsQueue;
+	VkQueue mPresentQueue;
 
-	const std::vector<const char *> validationLayers = {
+	const std::vector<const char *> mValidationLayers = {
 		"VK_LAYER_KHRONOS_validation"};
-	const std::vector<const char *> deviceExtensions = {
+	const std::vector<const char *> mDeviceExtensions = {
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 };
 
