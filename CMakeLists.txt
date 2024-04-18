@@ -12,11 +12,11 @@ set(TINYOBJ_PATH external/tinyobjloader)
 file(GLOB_RECURSE SOURCE_FILES "${SOURCE_DIR}/*.cpp")
 file(GLOB_RECURSE HEADER_FILES "${SOURCE_DIR}/*.hpp")
 
-add_executable(${EXECUTABLE_NAME} ${SOURCE_FILES} ${HEADER_FILES})
-
 find_package(Vulkan REQUIRED)
 find_package(glm REQUIRED)
 find_package(glfw3 REQUIRED)
+
+add_executable(${EXECUTABLE_NAME} ${SOURCE_FILES} ${HEADER_FILES})
 
 target_include_directories(${EXECUTABLE_NAME} PUBLIC
     ${SOURCE_DIR}/src

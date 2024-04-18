@@ -33,7 +33,7 @@
 // 	return 0;
 // }
 
-#include "vulkan/first_app.hpp"
+#include "app.hpp"
 
 // std
 #include <cstdlib>
@@ -42,10 +42,10 @@
 
 #include "ECS/ECS.hpp"
 
-ecs::Centralizer c{};
+ecs::Centralizer gCentralizer{};
 
 int main() {
-	vu::FirstApp app{};
+	vu::App app{};
 
 	try {
 		app.run();

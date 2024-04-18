@@ -1,10 +1,10 @@
-#include "first_app.hpp"
+#include "app.hpp"
 
-#include "buffer.hpp"
-#include "camera.hpp"
-#include "keyboard_movement_controller.hpp"
-#include "systems/point_light_system.hpp"
-#include "systems/simple_render_system.hpp"
+#include "ECS/Systems/point_light_system.hpp"
+#include "ECS/Systems/simple_render_system.hpp"
+#include "vulkan/buffer.hpp"
+#include "vulkan/camera.hpp"
+#include "vulkan/keyboard_movement_controller.hpp"
 
 // libs
 #define GLM_FORCE_RADIANS
@@ -20,7 +20,7 @@
 
 namespace vu {
 
-FirstApp::FirstApp() {
+App::App() {
 	mGlobalPool = DescriptorPool::Builder(mVuDevice)
 					  .setMaxSets(SwapChain::MAX_FRAMES_IN_FLIGHT)
 					  .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -29,9 +29,9 @@ FirstApp::FirstApp() {
 	loadGameObjects();
 }
 
-FirstApp::~FirstApp() {}
+App::~App() {}
 
-void FirstApp::run() {
+void App::run() {
 	std::vector<std::unique_ptr<Buffer>> uboBuffers(
 		SwapChain::MAX_FRAMES_IN_FLIGHT);
 	for (int i = 0; i < uboBuffers.size(); i++) {
@@ -120,7 +120,7 @@ void FirstApp::run() {
 	vkDeviceWaitIdle(mVuDevice.device());
 }
 
-void FirstApp::loadGameObjects() {
+void App::loadGameObjects() {
 	std::shared_ptr<Model> currentModel =
 		Model::createModelFromFile(mVuDevice, "models/flat_vase.obj");
 	auto flatVase = GameObject::createGameObject();

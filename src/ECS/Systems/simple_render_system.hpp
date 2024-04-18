@@ -1,17 +1,20 @@
 #pragma once
 
-#include "../camera.hpp"
-#include "../device.hpp"
-#include "../frame_info.hpp"
-#include "../game_object.hpp"
-#include "../pipeline.hpp"
+#include "../Base/centralizer.hpp"
+#include "../Base/system.hpp"
+
+#include "../../vulkan/camera.hpp"
+#include "../../vulkan/device.hpp"
+#include "../../vulkan/frame_info.hpp"
+#include "../../vulkan/game_object.hpp"
+#include "../../vulkan/pipeline.hpp"
 
 // std
 #include <memory>
 #include <vector>
 
 namespace vu {
-class SimpleRenderSystem {
+class SimpleRenderSystem : public ecs::System {
   public:
 	SimpleRenderSystem(Device &device, VkRenderPass renderPass,
 					   VkDescriptorSetLayout globalSetLayout);

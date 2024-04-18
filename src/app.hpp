@@ -1,26 +1,26 @@
 #pragma once
 
-#include "descriptors.hpp"
-#include "device.hpp"
-#include "game_object.hpp"
-#include "renderer.hpp"
-#include "window.hpp"
+#include "vulkan/descriptors.hpp"
+#include "vulkan/device.hpp"
+#include "vulkan/game_object.hpp"
+#include "vulkan/renderer.hpp"
+#include "vulkan/window.hpp"
 
 // std
 #include <memory>
 #include <vector>
 
 namespace vu {
-class FirstApp {
+class App {
   public:
 	static constexpr int WIDTH = 800;
 	static constexpr int HEIGHT = 600;
 
-	FirstApp();
-	~FirstApp();
+	App();
+	~App();
 
-	FirstApp(const FirstApp &) = delete;
-	FirstApp &operator=(const FirstApp &) = delete;
+	App(const App &) = delete;
+	App &operator=(const App &) = delete;
 
 	void run();
 
