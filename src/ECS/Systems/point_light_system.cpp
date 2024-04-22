@@ -12,7 +12,9 @@
 #include <map>
 #include <stdexcept>
 
-namespace vu {
+extern std::unique_ptr<ecs::Centralizer> gCentralizer;
+
+namespace ecs {
 
 struct PointLightPushConstants {
 	glm::vec4 position{};
@@ -73,43 +75,42 @@ void PointLightSystem::createPipeline(VkRenderPass renderPass) {
 void PointLightSystem::update(FrameInfo &frameInfo, GlobalUbo &ubo) {
 	auto rotateLight = glm::rotate(glm::mat4(1.f), 0.5f * frameInfo.frameTime,
 								   {0.f, -1.f, 0.f});
-	int lightIndex = 0;
-	for (auto &kv : frameInfo.gameObjects) {
-		auto &obj = kv.second;
-		if (obj.pointLight == nullptr)
-			continue;
+	for (const Entity &e : mEntities) {
+		auto &pointLight = gCentralizer->GetComponent<ecs::PointLight>(e);
+		auto &color = gCentralizer->GetComponent<ecs::Color>(e);
+		auto &transform = gCentralizer->GetComponent<ecs::Transform>(e);
 
-		assert(lightIndex < MAX_LIGHTS &&
-			   "Point lights exceed maximum specified");
+		// if (&pointLight == nullptr)
+		// 	continue;
+
+		assert(e < MAX_LIGHTS && "Point lights exceed maximum specified");
 
 		// update light position
-		obj.transform.translation =
-			glm::vec3(rotateLight * glm::vec4(obj.transform.translation, 1.f));
+		transform.position =
+			glm::vec3(rotateLight * glm::vec4(transform.position, 1.f));
 
 		// copy light to ubo
-		ubo.pointLights[lightIndex].position =
-			glm::vec4(obj.transform.translation, 1.f);
-		ubo.pointLights[lightIndex].color =
-			glm::vec4(obj.color, obj.pointLight->lightIntensity);
-
-		lightIndex += 1;
+		ubo.pointLights[e].position = glm::vec4(transform.position, 1.f);
+		ubo.pointLights[e].color =
+			glm::vec4(color.color, pointLight.lightIntensity);
 	}
-	ubo.numLights = lightIndex;
+	ubo.numLights = mEntities.size();
 }
 
 void PointLightSystem::render(FrameInfo &frameInfo) {
 	// sort lights
-	std::map<float, GameObject::id_t> sorted;
-	for (auto &kv : frameInfo.gameObjects) {
-		auto &obj = kv.second;
-		if (obj.pointLight == nullptr)
-			continue;
+	std::map<float, ecs::Entity> sorted;
+	for (const Entity &e : mEntities) {
+
+		auto &pointLight = gCentralizer->GetComponent<ecs::PointLight>(e);
+		auto &color = gCentralizer->GetComponent<ecs::Color>(e);
+		auto &transform = gCentralizer->GetComponent<ecs::Transform>(e);
 
 		// calculate distance
-		auto offset =
-			frameInfo.camera.getPosition() - obj.transform.translation;
+		auto offset = frameInfo.camera.getPosition() - transform.position;
 		float disSquared = glm::dot(offset, offset);
-		sorted[disSquared] = obj.getId();
+		// sorted[disSquared] = obj.getId();
+		sorted[disSquared] = e;
 	}
 
 	mVuPipeline->bind(frameInfo.commandBuffer);
@@ -118,15 +119,16 @@ void PointLightSystem::render(FrameInfo &frameInfo) {
 							VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0,
 							1, &frameInfo.globalDescriptorSet, 0, nullptr);
 
-	// iterate through sorted lights in reverse order
-	for (auto it = sorted.rbegin(); it != sorted.rend(); ++it) {
+	for (const Entity &e : mEntities) {
 		// use game obj id to find light object
-		auto &obj = frameInfo.gameObjects.at(it->second);
+		auto &transform = gCentralizer->GetComponent<ecs::Transform>(e);
+		auto &color = gCentralizer->GetComponent<ecs::Color>(e);
+		auto &pointLight = gCentralizer->GetComponent<ecs::PointLight>(e);
 
 		PointLightPushConstants push{};
-		push.position = glm::vec4(obj.transform.translation, 1.f);
-		push.color = glm::vec4(obj.color, obj.pointLight->lightIntensity);
-		push.radius = obj.transform.scale.x;
+		push.position = glm::vec4(transform.position, 1.f);
+		push.color = glm::vec4(color.color, pointLight.lightIntensity);
+		push.radius = transform.scale.x;
 
 		vkCmdPushConstants(frameInfo.commandBuffer, mPipelineLayout,
 						   VK_SHADER_STAGE_VERTEX_BIT |
@@ -136,4 +138,4 @@ void PointLightSystem::render(FrameInfo &frameInfo) {
 	}
 }
 
-} // namespace vu
+} // namespace ecs

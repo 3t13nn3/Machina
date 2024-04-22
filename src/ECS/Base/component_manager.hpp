@@ -4,6 +4,7 @@
 #include "component_array.hpp"
 
 #include <cassert>
+#include <iostream>
 #include <memory>
 #include <unordered_map>
 

@@ -2,10 +2,14 @@
 
 #include <glm/vec3.hpp>
 
+#include <memory>
+
+#include "../../vulkan/model.hpp"
+
 namespace ecs {
 
 struct Model {
-	// ref to the vulkan object model
+	std::shared_ptr<vu::Model> model{};
 };
 
 } // namespace ecs

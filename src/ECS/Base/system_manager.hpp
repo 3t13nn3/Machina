@@ -10,12 +10,14 @@
 namespace ecs {
 class SystemManager {
   public:
-	template <typename T> std::shared_ptr<T> RegisterSystem() {
+	template <typename T, typename... Args>
+	std::shared_ptr<T> RegisterSystem(Args &&...args) {
 		const char *typeName = typeid(T).name();
 		assert(mSystems.find(typeName) == mSystems.end() &&
-			   "RegisterSystem : System already exist.");
+			   "RegisterSystem : System already exists.");
 
-		auto sys = std::make_shared<T>();
+		auto sys = std::make_shared<T>(
+			std::forward<Args>(args)...); // Pass arguments to constructor
 		mSystems.insert({typeName, sys});
 
 		return sys;

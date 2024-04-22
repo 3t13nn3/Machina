@@ -11,7 +11,9 @@
 #include <cassert>
 #include <stdexcept>
 
-namespace vu {
+extern std::unique_ptr<ecs::Centralizer> gCentralizer;
+
+namespace ecs {
 
 struct SimplePushConstantData {
 	glm::mat4 modelMatrix{1.f};
@@ -72,21 +74,24 @@ void SimpleRenderSystem::renderGameObjects(FrameInfo &frameInfo) {
 							VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0,
 							1, &frameInfo.globalDescriptorSet, 0, nullptr);
 
-	for (auto &kv : frameInfo.gameObjects) {
-		auto &obj = kv.second;
-		if (obj.model == nullptr)
+	for (const Entity &e : mEntities) {
+
+		auto &transform = gCentralizer->GetComponent<ecs::Transform>(e);
+		auto &model = gCentralizer->GetComponent<ecs::Model>(e);
+
+		if (model.model == nullptr)
 			continue;
 		SimplePushConstantData push{};
-		push.modelMatrix = obj.transform.mat4();
-		push.normalMatrix = obj.transform.normalMatrix();
+		push.modelMatrix = transform.mat4();
+		push.normalMatrix = transform.normalMatrix();
 
 		vkCmdPushConstants(frameInfo.commandBuffer, mPipelineLayout,
 						   VK_SHADER_STAGE_VERTEX_BIT |
 							   VK_SHADER_STAGE_FRAGMENT_BIT,
 						   0, sizeof(SimplePushConstantData), &push);
-		obj.model->bind(frameInfo.commandBuffer);
-		obj.model->draw(frameInfo.commandBuffer);
+		model.model->bind(frameInfo.commandBuffer);
+		model.model->draw(frameInfo.commandBuffer);
 	}
 }
 
-} // namespace vu
+} // namespace ecs

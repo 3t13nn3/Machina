@@ -42,9 +42,12 @@
 
 #include "ECS/ECS.hpp"
 
-ecs::Centralizer gCentralizer{};
+std::unique_ptr<ecs::Centralizer> gCentralizer{};
 
 int main() {
+
+	gCentralizer = std::make_unique<ecs::Centralizer>();
+
 	vu::App app{};
 
 	try {

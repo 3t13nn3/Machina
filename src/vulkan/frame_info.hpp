@@ -30,6 +30,6 @@ struct FrameInfo {
 	VkCommandBuffer commandBuffer;
 	Camera &camera;
 	VkDescriptorSet globalDescriptorSet;
-	GameObject::Map &gameObjects;
+	// GameObject::Map &gameObjects;
 };
 } // namespace vu

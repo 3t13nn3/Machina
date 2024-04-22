@@ -9,11 +9,17 @@
 #include "../../vulkan/game_object.hpp"
 #include "../../vulkan/pipeline.hpp"
 
+#include "../Components/color.hpp"
+#include "../Components/point_light.hpp"
+#include "../Components/transform.hpp"
+
 // std
 #include <memory>
 #include <vector>
 
-namespace vu {
+using namespace vu;
+
+namespace ecs {
 class PointLightSystem : public ecs::System {
   public:
 	PointLightSystem(Device &device, VkRenderPass renderPass,
@@ -35,4 +41,4 @@ class PointLightSystem : public ecs::System {
 	std::unique_ptr<Pipeline> mVuPipeline;
 	VkPipelineLayout mPipelineLayout;
 };
-} // namespace vu
+} // namespace ecs

@@ -4,6 +4,7 @@
 
 #include <array>
 #include <cassert>
+#include <iostream>
 #include <unordered_map>
 
 namespace ecs {

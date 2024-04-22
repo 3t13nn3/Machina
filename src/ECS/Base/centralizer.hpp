@@ -57,8 +57,9 @@ class Centralizer {
 		return mComponentManager->GetComponentType<T>();
 	}
 
-	template <typename T> std::shared_ptr<T> RegisterSystem() {
-		return mSystemManager->RegisterSystem<T>();
+	template <typename T, typename... Args>
+	std::shared_ptr<T> RegisterSystem(Args &&...args) {
+		return mSystemManager->RegisterSystem<T>(std::forward<Args>(args)...);
 	}
 
 	template <typename T> void SetSystemSignature(Signature signature) {

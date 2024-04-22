@@ -1,12 +1,12 @@
 #include "physics_system.hpp"
 
-extern ecs::Centralizer gCentralizer;
+extern std::unique_ptr<ecs::Centralizer> gCentralizer;
 
 namespace ecs {
 void PhysicsSystem::Update() {
 	for (const Entity &e : mEntities) {
 		glm::vec3 &currentTransform =
-			gCentralizer.GetComponent<Transform>(e).position;
+			gCentralizer->GetComponent<Transform>(e).position;
 		currentTransform += glm::vec3{3.1415, 1.0, 0.0};
 	}
 }

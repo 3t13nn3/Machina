@@ -1,5 +1,4 @@
-#ifndef ECS_HPP
-#define ECS_HPP
+#pragma once
 
 #include "Type/ecs_type.hpp"
 
@@ -11,10 +10,13 @@
 #include "Base/system_manager.hpp"
 
 #include "Systems/physics_system.hpp"
+#include "Systems/point_light_system.hpp"
+#include "Systems/simple_render_system.hpp"
 
 #include "Components/camera.hpp"
+#include "Components/color.hpp"
 #include "Components/gravity.hpp"
+#include "Components/model.hpp"
+#include "Components/point_light.hpp"
 #include "Components/rigid_body.hpp"
 #include "Components/transform.hpp"
-
-#endif // ECS_HPP

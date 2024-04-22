@@ -9,11 +9,15 @@
 #include "../../vulkan/game_object.hpp"
 #include "../../vulkan/pipeline.hpp"
 
+#include "../Components/model.hpp"
+#include "../Components/transform.hpp"
 // std
 #include <memory>
 #include <vector>
 
-namespace vu {
+using namespace vu;
+
+namespace ecs {
 class SimpleRenderSystem : public ecs::System {
   public:
 	SimpleRenderSystem(Device &device, VkRenderPass renderPass,
@@ -34,4 +38,4 @@ class SimpleRenderSystem : public ecs::System {
 	std::unique_ptr<Pipeline> mVuPipeline;
 	VkPipelineLayout mPipelineLayout;
 };
-} // namespace vu
+} // namespace ecs

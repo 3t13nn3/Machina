@@ -18,6 +18,8 @@
 #include <chrono>
 #include <stdexcept>
 
+extern std::unique_ptr<ecs::Centralizer> gCentralizer;
+
 namespace vu {
 
 App::App() {
@@ -26,7 +28,6 @@ App::App() {
 					  .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 								   SwapChain::MAX_FRAMES_IN_FLIGHT)
 					  .build();
-	loadGameObjects();
 }
 
 App::~App() {}
@@ -55,13 +56,18 @@ void App::run() {
 			.build(globalDescriptorSets[i]);
 	}
 
-	SimpleRenderSystem simpleRenderSystem{
-		mVuDevice, mVuRenderer.getSwapChainRenderPass(),
-		globalSetLayout->getDescriptorSetLayout()};
-	PointLightSystem pointLightSystem{
-		mVuDevice, mVuRenderer.getSwapChainRenderPass(),
-		globalSetLayout->getDescriptorSetLayout()};
+	std::shared_ptr<ecs::SimpleRenderSystem> simpleRenderSystem =
+		gCentralizer->RegisterSystem<ecs::SimpleRenderSystem>(
+			mVuDevice, mVuRenderer.getSwapChainRenderPass(),
+			globalSetLayout->getDescriptorSetLayout());
+	std::shared_ptr<ecs::PointLightSystem> pointLightSystem =
+		gCentralizer->RegisterSystem<ecs::PointLightSystem>(
+			mVuDevice, mVuRenderer.getSwapChainRenderPass(),
+			globalSetLayout->getDescriptorSetLayout());
+
 	Camera camera{};
+
+	loadGameObjects();
 
 	auto viewerObject = GameObject::createGameObject();
 	viewerObject.transform.translation.z = -2.5f;
@@ -89,19 +95,21 @@ void App::run() {
 
 		if (auto commandBuffer = mVuRenderer.beginFrame()) {
 			int frameIndex = mVuRenderer.getFrameIndex();
-			FrameInfo frameInfo{frameIndex,
-								frameTime,
-								commandBuffer,
-								camera,
-								globalDescriptorSets[frameIndex],
-								mGameObjects};
+			FrameInfo frameInfo{
+				frameIndex,
+				frameTime,
+				commandBuffer,
+				camera,
+				globalDescriptorSets[frameIndex],
+				// mGameObjects
+			};
 
 			// update
 			GlobalUbo ubo{};
 			ubo.projection = camera.getProjection();
 			ubo.view = camera.getView();
 			ubo.inverseView = camera.getInverseView();
-			pointLightSystem.update(frameInfo, ubo);
+			pointLightSystem->update(frameInfo, ubo);
 			uboBuffers[frameIndex]->writeToBuffer(&ubo);
 			uboBuffers[frameIndex]->flush();
 
@@ -109,40 +117,65 @@ void App::run() {
 			mVuRenderer.beginSwapChainRenderPass(commandBuffer);
 
 			// order here matters
-			simpleRenderSystem.renderGameObjects(frameInfo);
-			pointLightSystem.render(frameInfo);
+			simpleRenderSystem->renderGameObjects(frameInfo);
+			pointLightSystem->render(frameInfo);
 
 			mVuRenderer.endSwapChainRenderPass(commandBuffer);
 			mVuRenderer.endFrame();
 		}
 	}
 
+	// deleting manually ths centralizer
+	gCentralizer = nullptr;
+
 	vkDeviceWaitIdle(mVuDevice.device());
 }
 
 void App::loadGameObjects() {
-	std::shared_ptr<Model> currentModel =
-		Model::createModelFromFile(mVuDevice, "models/flat_vase.obj");
-	auto flatVase = GameObject::createGameObject();
-	flatVase.model = currentModel;
-	flatVase.transform.translation = {-.5f, .5f, 0.f};
-	flatVase.transform.scale = {3.f, 1.5f, 3.f};
-	mGameObjects.emplace(flatVase.getId(), std::move(flatVase));
 
-	currentModel =
-		Model::createModelFromFile(mVuDevice, "models/smooth_vase.obj");
-	auto smoothVase = GameObject::createGameObject();
-	smoothVase.model = currentModel;
-	smoothVase.transform.translation = {.5f, .5f, 0.f};
-	smoothVase.transform.scale = {3.f, 1.5f, 3.f};
-	mGameObjects.emplace(smoothVase.getId(), std::move(smoothVase));
+	// init components
+	gCentralizer->RegisterComponent<ecs::Model>();
+	gCentralizer->RegisterComponent<ecs::Transform>();
+	gCentralizer->RegisterComponent<ecs::Color>();
+	gCentralizer->RegisterComponent<ecs::PointLight>();
 
-	currentModel = Model::createModelFromFile(mVuDevice, "models/quad.obj");
-	auto floor = GameObject::createGameObject();
-	floor.model = currentModel;
-	floor.transform.translation = {0.f, .5f, 0.f};
-	floor.transform.scale = {3.f, 1.f, 3.f};
-	mGameObjects.emplace(floor.getId(), std::move(floor));
+	// init signature for vase and floor
+	ecs::Signature sign;
+	sign.set(gCentralizer->GetComponentType<ecs::Model>());
+	sign.set(gCentralizer->GetComponentType<ecs::Transform>());
+	gCentralizer->SetSystemSignature<ecs::SimpleRenderSystem>(sign);
+
+	ecs::Signature sign2;
+	sign2.set(gCentralizer->GetComponentType<ecs::Transform>());
+	sign2.set(gCentralizer->GetComponentType<ecs::Color>());
+	sign2.set(gCentralizer->GetComponentType<ecs::PointLight>());
+	gCentralizer->SetSystemSignature<ecs::PointLightSystem>(sign2);
+
+	// adding object to ECS
+	{
+		ecs::Entity e = gCentralizer->CreateEntity();
+		gCentralizer->AddComponent(e, ecs::Transform{{-.5f, .5f, 0.f},
+													 {0.f, 0.f, 0.f},
+													 {3.f, 1.5f, 3.f}});
+		std::shared_ptr<Model> currentModel =
+			Model::createModelFromFile(mVuDevice, "models/flat_vase.obj");
+		gCentralizer->AddComponent(e, ecs::Model{std::move(currentModel)});
+
+		e = gCentralizer->CreateEntity();
+		gCentralizer->AddComponent(
+			e,
+			ecs::Transform{{.5f, .5f, 0.f}, {0.f, 0.f, 0.f}, {3.f, 1.5f, 3.f}});
+		currentModel =
+			Model::createModelFromFile(mVuDevice, "models/smooth_vase.obj");
+		gCentralizer->AddComponent(e, ecs::Model{std::move(currentModel)});
+
+		e = gCentralizer->CreateEntity();
+		gCentralizer->AddComponent(
+			e,
+			ecs::Transform{{0.f, .5f, 0.f}, {0.f, 0.f, 0.f}, {3.f, 1.f, 3.f}});
+		currentModel = Model::createModelFromFile(mVuDevice, "models/quad.obj");
+		gCentralizer->AddComponent(e, ecs::Model{std::move(currentModel)});
+	}
 
 	std::vector<glm::vec3> lightColors{
 		{1.f, .1f, .1f}, {.1f, .1f, 1.f}, {.1f, 1.f, .1f},
@@ -150,14 +183,17 @@ void App::loadGameObjects() {
 	};
 
 	for (int i = 0; i < lightColors.size(); i++) {
-		auto pointLight = GameObject::makePointLight(0.2f);
-		pointLight.color = lightColors[i];
 		auto rotateLight = glm::rotate(
 			glm::mat4(1.f), (i * glm::two_pi<float>()) / lightColors.size(),
 			{0.f, -1.f, 0.f});
-		pointLight.transform.translation =
-			glm::vec3(rotateLight * glm::vec4(-1.f, -1.f, -1.f, 1.f));
-		mGameObjects.emplace(pointLight.getId(), std::move(pointLight));
+		ecs::Entity e = gCentralizer->CreateEntity();
+		gCentralizer->AddComponent(
+			e, ecs::Transform{
+				   glm::vec3(rotateLight * glm::vec4(-1.f, -1.f, -1.f, 1.f)),
+				   {0.f, 0.f, 0.f},
+				   {0.1f, 0.1f, 0.1f}});
+		gCentralizer->AddComponent(e, ecs::Color{lightColors[i]});
+		gCentralizer->AddComponent(e, ecs::PointLight{0.2f});
 	}
 }
 
