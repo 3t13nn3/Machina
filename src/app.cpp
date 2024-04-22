@@ -24,15 +24,20 @@ namespace vu {
 
 App::App() {
 	mGlobalPool = DescriptorPool::Builder(mVuDevice)
-					  .setMaxSets(SwapChain::MAX_FRAMES_IN_FLIGHT)
+					  .setMaxSets(SwapChain::MAX_FRAMES_IN_FLIGHT * 2)
 					  .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-								   SwapChain::MAX_FRAMES_IN_FLIGHT)
+								   SwapChain::MAX_FRAMES_IN_FLIGHT * 2)
 					  .build();
 }
 
 App::~App() {}
 
 void App::run() {
+
+	struct TimeUbo {
+		float timeElapsed;
+	};
+
 	std::vector<std::unique_ptr<Buffer>> uboBuffers(
 		SwapChain::MAX_FRAMES_IN_FLIGHT);
 	for (int i = 0; i < uboBuffers.size(); i++) {
@@ -42,8 +47,19 @@ void App::run() {
 		uboBuffers[i]->map();
 	}
 
+	std::vector<std::unique_ptr<Buffer>> timeUboBuffers(
+		SwapChain::MAX_FRAMES_IN_FLIGHT);
+	for (int i = 0; i < timeUboBuffers.size(); i++) {
+		timeUboBuffers[i] = std::make_unique<Buffer>(
+			mVuDevice, sizeof(TimeUbo), 1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+		timeUboBuffers[i]->map();
+	}
+
 	auto globalSetLayout = DescriptorSetLayout::Builder(mVuDevice)
 							   .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+										   VK_SHADER_STAGE_ALL_GRAPHICS)
+							   .addBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 										   VK_SHADER_STAGE_ALL_GRAPHICS)
 							   .build();
 
@@ -51,8 +67,14 @@ void App::run() {
 		SwapChain::MAX_FRAMES_IN_FLIGHT);
 	for (int i = 0; i < globalDescriptorSets.size(); i++) {
 		auto bufferInfo = uboBuffers[i]->descriptorInfo();
+		auto timeBufferInfo =
+			timeUboBuffers[i]->descriptorInfo(); // Obtenez les informations sur
+												 // le tampon du UBO du temps
 		DescriptorWriter(*globalSetLayout, *mGlobalPool)
 			.writeBuffer(0, &bufferInfo)
+			.writeBuffer(
+				1,
+				&timeBufferInfo) // Écrivez également le tampon du UBO du temps
 			.build(globalDescriptorSets[i]);
 	}
 
@@ -74,6 +96,7 @@ void App::run() {
 	KeyboardMovementController cameraController{};
 
 	auto currentTime = std::chrono::high_resolution_clock::now();
+	auto startTime = currentTime;
 	while (!mVuWindow.shouldClose()) {
 		glfwPollEvents();
 
@@ -113,6 +136,16 @@ void App::run() {
 			uboBuffers[frameIndex]->writeToBuffer(&ubo);
 			uboBuffers[frameIndex]->flush();
 
+			// Initialisez les données du UBO du temps
+			TimeUbo timeUboData;
+			timeUboData.timeElapsed =
+				std::chrono::duration<float, std::chrono::seconds::period>(
+					newTime - startTime)
+					.count();
+
+			timeUboBuffers[frameIndex]->writeToBuffer(&timeUboData);
+			timeUboBuffers[frameIndex]->flush();
+
 			// render
 			mVuRenderer.beginSwapChainRenderPass(commandBuffer);
 
@@ -146,8 +179,8 @@ void App::loadGameObjects() {
 	gCentralizer->SetSystemSignature<ecs::SimpleRenderSystem>(sign);
 
 	ecs::Signature sign2;
-	sign2.set(gCentralizer->GetComponentType<ecs::Transform>());
-	sign2.set(gCentralizer->GetComponentType<ecs::Color>());
+	// sign2.set(gCentralizer->GetComponentType<ecs::Transform>());
+	// sign2.set(gCentralizer->GetComponentType<ecs::Color>());
 	sign2.set(gCentralizer->GetComponentType<ecs::PointLight>());
 	gCentralizer->SetSystemSignature<ecs::PointLightSystem>(sign2);
 
@@ -161,13 +194,19 @@ void App::loadGameObjects() {
 			Model::createModelFromFile(mVuDevice, "models/flat_vase.obj");
 		gCentralizer->AddComponent(e, ecs::Model{std::move(currentModel)});
 
-		e = gCentralizer->CreateEntity();
-		gCentralizer->AddComponent(
-			e,
-			ecs::Transform{{.5f, .5f, 0.f}, {0.f, 0.f, 0.f}, {3.f, 1.5f, 3.f}});
 		currentModel =
 			Model::createModelFromFile(mVuDevice, "models/smooth_vase.obj");
-		gCentralizer->AddComponent(e, ecs::Model{std::move(currentModel)});
+		for (size_t i{0}; i < 60; ++i) {
+			for (size_t j{0}; j < 60; ++j) {
+				e = gCentralizer->CreateEntity();
+				gCentralizer->AddComponent(
+					e, ecs::Transform{
+						   {i - 30.f, (i % 2 ? j : (j + 0.5f)) - 30.f, 6.f},
+						   {0.f, 0.f, 0.f},
+						   {3.f, 1.5f, 3.f}});
+				gCentralizer->AddComponent(e, ecs::Model{currentModel});
+			}
+		}
 
 		e = gCentralizer->CreateEntity();
 		gCentralizer->AddComponent(

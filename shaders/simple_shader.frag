@@ -21,6 +21,9 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
 }
 ubo;
 
+layout(set = 0, binding = 1) uniform TimeUbo { float timeElapsed; }
+timeUbo;
+
 layout(push_constant) uniform Push {
 	mat4 modelMatrix;
 	mat4 normalMatrix;
@@ -55,7 +58,12 @@ void main() {
 		specularLight += intensity * blinnTerm;
 	}
 
-	outColor = vec4(
-		pow(diffuseLight * fragColor + specularLight * fragColor, vec3(0.4545)),
-		1.0);
+	outColor = vec4(pow(diffuseLight * fragColor + specularLight * fragColor,
+						vec3(0.4545)),
+					0.0) +
+			   vec4(0.f, 0.f,
+					mod(timeUbo.timeElapsed + sin(fragPosWorld.y) +
+							cos(fragPosWorld.x),
+						1),
+					mod(timeUbo.timeElapsed + fragPosWorld.y, 2));
 }

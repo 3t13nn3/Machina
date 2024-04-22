@@ -40,23 +40,29 @@ void PointLightSystem::createPipeline(VkRenderPass renderPass) {
 }
 
 void PointLightSystem::update(FrameInfo &frameInfo, GlobalUbo &ubo) {
+
+	assert(mEntities.size() <= MAX_LIGHTS &&
+		   "Point lights exceed maximum specified");
+
 	auto rotateLight = glm::rotate(glm::mat4(1.f), 0.5f * frameInfo.frameTime,
 								   {0.f, -1.f, 0.f});
+
+	size_t lightIndex = 0;
 	for (const Entity &e : mEntities) {
 		auto &pointLight = gCentralizer->GetComponent<ecs::PointLight>(e);
 		auto &color = gCentralizer->GetComponent<ecs::Color>(e);
 		auto &transform = gCentralizer->GetComponent<ecs::Transform>(e);
-
-		assert(e < MAX_LIGHTS && "Point lights exceed maximum specified");
 
 		// update light position
 		transform.position =
 			glm::vec3(rotateLight * glm::vec4(transform.position, 1.f));
 
 		// copy light to ubo
-		ubo.pointLights[e].position = glm::vec4(transform.position, 1.f);
-		ubo.pointLights[e].color =
+		ubo.pointLights[lightIndex].position =
+			glm::vec4(transform.position, 1.f);
+		ubo.pointLights[lightIndex].color =
 			glm::vec4(color.color, pointLight.lightIntensity);
+		++lightIndex;
 	}
 	ubo.numLights = mEntities.size();
 }

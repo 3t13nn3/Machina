@@ -27,7 +27,7 @@ class App {
   private:
 	void loadGameObjects();
 
-	Window mVuWindow{WIDTH, HEIGHT, "Vulkan Tutorial"};
+	Window mVuWindow{WIDTH, HEIGHT, "Machina !"};
 	Device mVuDevice{mVuWindow};
 	Renderer mVuRenderer{mVuWindow, mVuDevice};
 

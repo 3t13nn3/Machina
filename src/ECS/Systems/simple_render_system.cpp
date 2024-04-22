@@ -28,6 +28,7 @@ void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
 
 	PipelineConfigInfo pipelineConfig{};
 	Pipeline::defaultPipelineConfigInfo(pipelineConfig);
+	// Pipeline::enableAlphaBlending(pipelineConfig);
 	pipelineConfig.renderPass = renderPass;
 	pipelineConfig.pipelineLayout = mPipelineLayout;
 	mVuPipeline = std::make_unique<Pipeline>(
