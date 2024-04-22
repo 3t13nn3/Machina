@@ -11,6 +11,7 @@
 
 #include "Systems/physics_system.hpp"
 #include "Systems/point_light_system.hpp"
+#include "Systems/render_system.hpp"
 #include "Systems/simple_render_system.hpp"
 
 #include "Components/camera.hpp"

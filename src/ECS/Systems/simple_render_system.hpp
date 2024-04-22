@@ -4,38 +4,32 @@
 #include "../Base/system.hpp"
 
 #include "../../vulkan/camera.hpp"
-#include "../../vulkan/device.hpp"
-#include "../../vulkan/frame_info.hpp"
-#include "../../vulkan/game_object.hpp"
-#include "../../vulkan/pipeline.hpp"
 
 #include "../Components/model.hpp"
 #include "../Components/transform.hpp"
+
+#include "render_system.hpp"
+
 // std
 #include <memory>
 #include <vector>
 
 using namespace vu;
 
+struct SimplePushConstantData {
+	glm::mat4 modelMatrix{1.f};
+	glm::mat4 normalMatrix{1.f};
+};
+
 namespace ecs {
-class SimpleRenderSystem : public ecs::System {
+class SimpleRenderSystem : public IRenderSystem {
   public:
 	SimpleRenderSystem(Device &device, VkRenderPass renderPass,
 					   VkDescriptorSetLayout globalSetLayout);
-	~SimpleRenderSystem();
+	void render(FrameInfo &frameInfo) override;
+	void update(FrameInfo &frameInfo, GlobalUbo &ubo) override;
 
-	SimpleRenderSystem(const SimpleRenderSystem &) = delete;
-	SimpleRenderSystem &operator=(const SimpleRenderSystem &) = delete;
-
-	void renderGameObjects(FrameInfo &frameInfo);
-
-  private:
-	void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
-	void createPipeline(VkRenderPass renderPass);
-
-	Device &mVuDevice;
-
-	std::unique_ptr<Pipeline> mVuPipeline;
-	VkPipelineLayout mPipelineLayout;
+  protected:
+	void createPipeline(VkRenderPass renderPass) override;
 };
 } // namespace ecs

@@ -15,43 +15,11 @@ extern std::unique_ptr<ecs::Centralizer> gCentralizer;
 
 namespace ecs {
 
-struct SimplePushConstantData {
-	glm::mat4 modelMatrix{1.f};
-	glm::mat4 normalMatrix{1.f};
-};
-
 SimpleRenderSystem::SimpleRenderSystem(Device &device, VkRenderPass renderPass,
 									   VkDescriptorSetLayout globalSetLayout)
-	: mVuDevice{device} {
-	createPipelineLayout(globalSetLayout);
-	createPipeline(renderPass);
-}
-
-SimpleRenderSystem::~SimpleRenderSystem() {
-	vkDestroyPipelineLayout(mVuDevice.device(), mPipelineLayout, nullptr);
-}
-
-void SimpleRenderSystem::createPipelineLayout(
-	VkDescriptorSetLayout globalSetLayout) {
-	VkPushConstantRange pushConstantRange{};
-	pushConstantRange.stageFlags =
-		VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-	pushConstantRange.offset = 0;
-	pushConstantRange.size = sizeof(SimplePushConstantData);
-
-	std::vector<VkDescriptorSetLayout> descriptorSetLayouts{globalSetLayout};
-
-	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount =
-		static_cast<uint32_t>(descriptorSetLayouts.size());
-	pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
-	pipelineLayoutInfo.pushConstantRangeCount = 1;
-	pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-	if (vkCreatePipelineLayout(mVuDevice.device(), &pipelineLayoutInfo, nullptr,
-							   &mPipelineLayout) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create pipeline layout!");
-	}
+	: IRenderSystem(device, renderPass, globalSetLayout) {
+	mPushConstantRangeSize = sizeof(SimplePushConstantData);
+	initPipeline(renderPass, globalSetLayout);
 }
 
 void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
@@ -67,7 +35,7 @@ void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
 		"shaders/simple_shader.frag.spv", pipelineConfig);
 }
 
-void SimpleRenderSystem::renderGameObjects(FrameInfo &frameInfo) {
+void SimpleRenderSystem::render(FrameInfo &frameInfo) {
 	mVuPipeline->bind(frameInfo.commandBuffer);
 
 	vkCmdBindDescriptorSets(frameInfo.commandBuffer,
@@ -93,5 +61,7 @@ void SimpleRenderSystem::renderGameObjects(FrameInfo &frameInfo) {
 		model.model->draw(frameInfo.commandBuffer);
 	}
 }
+
+void SimpleRenderSystem::update(FrameInfo &frameInfo, GlobalUbo &ubo) {}
 
 } // namespace ecs

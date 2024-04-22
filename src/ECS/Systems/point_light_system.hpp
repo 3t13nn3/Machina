@@ -4,14 +4,12 @@
 #include "../Base/system.hpp"
 
 #include "../../vulkan/camera.hpp"
-#include "../../vulkan/device.hpp"
-#include "../../vulkan/frame_info.hpp"
-#include "../../vulkan/game_object.hpp"
-#include "../../vulkan/pipeline.hpp"
 
 #include "../Components/color.hpp"
 #include "../Components/point_light.hpp"
 #include "../Components/transform.hpp"
+
+#include "render_system.hpp"
 
 // std
 #include <memory>
@@ -19,26 +17,22 @@
 
 using namespace vu;
 
+struct PointLightPushConstants {
+	glm::vec4 position{};
+	glm::vec4 color{};
+	float radius;
+};
+
 namespace ecs {
-class PointLightSystem : public ecs::System {
+class PointLightSystem : public IRenderSystem {
   public:
 	PointLightSystem(Device &device, VkRenderPass renderPass,
 					 VkDescriptorSetLayout globalSetLayout);
-	~PointLightSystem();
 
-	PointLightSystem(const PointLightSystem &) = delete;
-	PointLightSystem &operator=(const PointLightSystem &) = delete;
+	void render(FrameInfo &frameInfo) override;
+	void update(FrameInfo &frameInfo, GlobalUbo &ubo) override;
 
-	void update(FrameInfo &frameInfo, GlobalUbo &ubo);
-	void render(FrameInfo &frameInfo);
-
-  private:
-	void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
-	void createPipeline(VkRenderPass renderPass);
-
-	Device &mVuDevice;
-
-	std::unique_ptr<Pipeline> mVuPipeline;
-	VkPipelineLayout mPipelineLayout;
+  protected:
+	void createPipeline(VkRenderPass renderPass) override;
 };
 } // namespace ecs

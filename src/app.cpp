@@ -117,7 +117,7 @@ void App::run() {
 			mVuRenderer.beginSwapChainRenderPass(commandBuffer);
 
 			// order here matters
-			simpleRenderSystem->renderGameObjects(frameInfo);
+			simpleRenderSystem->render(frameInfo);
 			pointLightSystem->render(frameInfo);
 
 			mVuRenderer.endSwapChainRenderPass(commandBuffer);
@@ -125,10 +125,10 @@ void App::run() {
 		}
 	}
 
-	// deleting manually ths centralizer
-	gCentralizer = nullptr;
-
 	vkDeviceWaitIdle(mVuDevice.device());
+
+	// deleting manually the centralizer
+	gCentralizer = nullptr;
 }
 
 void App::loadGameObjects() {

@@ -16,44 +16,11 @@ extern std::unique_ptr<ecs::Centralizer> gCentralizer;
 
 namespace ecs {
 
-struct PointLightPushConstants {
-	glm::vec4 position{};
-	glm::vec4 color{};
-	float radius;
-};
-
 PointLightSystem::PointLightSystem(Device &device, VkRenderPass renderPass,
 								   VkDescriptorSetLayout globalSetLayout)
-	: mVuDevice{device} {
-	createPipelineLayout(globalSetLayout);
-	createPipeline(renderPass);
-}
-
-PointLightSystem::~PointLightSystem() {
-	vkDestroyPipelineLayout(mVuDevice.device(), mPipelineLayout, nullptr);
-}
-
-void PointLightSystem::createPipelineLayout(
-	VkDescriptorSetLayout globalSetLayout) {
-	VkPushConstantRange pushConstantRange{};
-	pushConstantRange.stageFlags =
-		VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-	pushConstantRange.offset = 0;
-	pushConstantRange.size = sizeof(PointLightPushConstants);
-
-	std::vector<VkDescriptorSetLayout> descriptorSetLayouts{globalSetLayout};
-
-	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount =
-		static_cast<uint32_t>(descriptorSetLayouts.size());
-	pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
-	pipelineLayoutInfo.pushConstantRangeCount = 1;
-	pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-	if (vkCreatePipelineLayout(mVuDevice.device(), &pipelineLayoutInfo, nullptr,
-							   &mPipelineLayout) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create pipeline layout!");
-	}
+	: IRenderSystem(device, renderPass, globalSetLayout) {
+	mPushConstantRangeSize = sizeof(PointLightPushConstants);
+	initPipeline(renderPass, globalSetLayout);
 }
 
 void PointLightSystem::createPipeline(VkRenderPass renderPass) {
@@ -79,9 +46,6 @@ void PointLightSystem::update(FrameInfo &frameInfo, GlobalUbo &ubo) {
 		auto &pointLight = gCentralizer->GetComponent<ecs::PointLight>(e);
 		auto &color = gCentralizer->GetComponent<ecs::Color>(e);
 		auto &transform = gCentralizer->GetComponent<ecs::Transform>(e);
-
-		// if (&pointLight == nullptr)
-		// 	continue;
 
 		assert(e < MAX_LIGHTS && "Point lights exceed maximum specified");
 
