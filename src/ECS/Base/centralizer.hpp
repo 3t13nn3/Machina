@@ -17,53 +17,53 @@ class Centralizer {
 		mSystemManager = std::make_unique<SystemManager>();
 	}
 
-	Entity CreateEntity() { return mEntityManager->CreateEntity(); }
+	Entity createEntity() { return mEntityManager->createEntity(); }
 
-	void DestroyEntity(Entity entity) {
-		mEntityManager->DestroyEntity(entity);
-		mComponentManager->EntityDestroyed(entity);
-		mSystemManager->EntityDestroyed(entity);
+	void destroyEntity(Entity entity) {
+		mEntityManager->destroyEntity(entity);
+		mComponentManager->entityDestroyed(entity);
+		mSystemManager->entityDestroyed(entity);
 	}
 
-	template <typename T> void RegisterComponent() {
-		mComponentManager->RegisterComponent<T>();
+	template <typename T> void registerComponent() {
+		mComponentManager->registerComponent<T>();
 	}
 
-	template <typename T> void AddComponent(Entity entity, T component) {
-		mComponentManager->AddComponent<T>(entity, component);
+	template <typename T> void addComponent(Entity entity, T component) {
+		mComponentManager->addComponent<T>(entity, component);
 
-		Signature signature = mEntityManager->GetSignature(entity);
-		signature.set(mComponentManager->GetComponentType<T>(), true);
-		mEntityManager->SetSignature(entity, signature);
+		Signature signature = mEntityManager->getSignature(entity);
+		signature.set(mComponentManager->getComponentType<T>(), true);
+		mEntityManager->setSignature(entity, signature);
 
-		mSystemManager->EntitySignatureChanged(entity, signature);
+		mSystemManager->entitySignatureChanged(entity, signature);
 	}
 
-	template <typename T> void RemoveComponent(Entity entity) {
-		mComponentManager->RemoveComponent<T>(entity);
+	template <typename T> void removeComponent(Entity entity) {
+		mComponentManager->removeComponent<T>(entity);
 
-		Signature signature = mEntityManager->GetSignature(entity);
-		signature.set(mComponentManager->GetComponentType<T>(), false);
-		mEntityManager->SetSignature(entity, signature);
+		Signature signature = mEntityManager->getSignature(entity);
+		signature.set(mComponentManager->getComponentType<T>(), false);
+		mEntityManager->setSignature(entity, signature);
 
-		mSystemManager->EntitySignatureChanged(entity, signature);
+		mSystemManager->entitySignatureChanged(entity, signature);
 	}
 
-	template <typename T> T &GetComponent(Entity entity) {
-		return mComponentManager->GetComponent<T>(entity);
+	template <typename T> T &getComponent(Entity entity) {
+		return mComponentManager->getComponent<T>(entity);
 	}
 
-	template <typename T> ComponentType GetComponentType() {
-		return mComponentManager->GetComponentType<T>();
+	template <typename T> ComponentType getComponentType() {
+		return mComponentManager->getComponentType<T>();
 	}
 
 	template <typename T, typename... Args>
-	std::shared_ptr<T> RegisterSystem(Args &&...args) {
-		return mSystemManager->RegisterSystem<T>(std::forward<Args>(args)...);
+	std::shared_ptr<T> registerSystem(Args &&...args) {
+		return mSystemManager->registerSystem<T>(std::forward<Args>(args)...);
 	}
 
-	template <typename T> void SetSystemSignature(Signature signature) {
-		mSystemManager->SetSignature<T>(signature);
+	template <typename T> void setSystemSignature(Signature signature) {
+		mSystemManager->setSignature<T>(signature);
 	}
 
   private:

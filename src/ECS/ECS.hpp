@@ -9,7 +9,7 @@
 #include "Base/system.hpp"
 #include "Base/system_manager.hpp"
 
-#include "Systems/physics_system.hpp"
+#include "Systems/camera_system.hpp"
 #include "Systems/point_light_system.hpp"
 #include "Systems/render_system.hpp"
 #include "Systems/simple_render_system.hpp"

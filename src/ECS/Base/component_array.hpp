@@ -13,15 +13,15 @@ namespace ecs {
 class IComponentArray {
   public:
 	virtual ~IComponentArray() = default;
-	virtual void EntityDestroyed(Entity entity) = 0;
+	virtual void entityDestroyed(Entity entity) = 0;
 };
 
 template <typename T> class ComponentArray : public IComponentArray {
 
   public:
-	void InsertData(Entity entity, T component) {
+	void insertData(Entity entity, T component) {
 		assert(mEntityToIndex.find(entity) == mEntityToIndex.end() &&
-			   "InsertData : Entity is already in the component array.");
+			   "insertData : Entity is already in the component array.");
 
 		// keep the index to data position
 		mEntityToIndex[entity] = currentSize;
@@ -33,9 +33,9 @@ template <typename T> class ComponentArray : public IComponentArray {
 		++currentSize;
 	}
 
-	void RemoveData(Entity entity) {
+	void removeData(Entity entity) {
 		assert(mEntityToIndex.find(entity) != mEntityToIndex.end() &&
-			   "RemoveData : Entity isn't in the component array.");
+			   "removeData : Entity isn't in the component array.");
 
 		// put the last element of the array at the "to remove" entity index
 		size_t removedEntityIndex = mEntityToIndex[entity];
@@ -50,14 +50,14 @@ template <typename T> class ComponentArray : public IComponentArray {
 		--currentSize;
 	}
 
-	T &GetData(Entity entity) {
+	T &getData(Entity entity) {
 		assert(mEntityToIndex.find(entity) != mEntityToIndex.end() &&
-			   "GetData : Entity isn't in the component array.");
+			   "getData : Entity isn't in the component array.");
 
 		return mComponentArray[mEntityToIndex[entity]];
 	}
 
-	void EntityDestroyed(Entity entity) { RemoveData(entity); }
+	void entityDestroyed(Entity entity) { removeData(entity); }
 
   private:
 	std::array<T, MAX_ENTITIES> mComponentArray{};

@@ -1,9 +1,7 @@
 #pragma once
 
-#include "camera.hpp"
-#include "game_object.hpp"
-
 // lib
+#include <glm/glm.hpp>
 #include <vulkan/vulkan.h>
 
 namespace vu {
@@ -28,8 +26,6 @@ struct FrameInfo {
 	int frameIndex;
 	float frameTime;
 	VkCommandBuffer commandBuffer;
-	Camera &camera;
 	VkDescriptorSet globalDescriptorSet;
-	// GameObject::Map &gameObjects;
 };
 } // namespace vu

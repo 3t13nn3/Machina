@@ -49,9 +49,9 @@ void PointLightSystem::update(FrameInfo &frameInfo, GlobalUbo &ubo) {
 
 	size_t lightIndex = 0;
 	for (const Entity &e : mEntities) {
-		auto &pointLight = gCentralizer->GetComponent<ecs::PointLight>(e);
-		auto &color = gCentralizer->GetComponent<ecs::Color>(e);
-		auto &transform = gCentralizer->GetComponent<ecs::Transform>(e);
+		auto &pointLight = gCentralizer->getComponent<ecs::PointLight>(e);
+		auto &color = gCentralizer->getComponent<ecs::Color>(e);
+		auto &transform = gCentralizer->getComponent<ecs::Transform>(e);
 
 		// update light position
 		transform.position =
@@ -70,14 +70,16 @@ void PointLightSystem::update(FrameInfo &frameInfo, GlobalUbo &ubo) {
 void PointLightSystem::render(FrameInfo &frameInfo) {
 	// sort lights
 	std::map<float, ecs::Entity> sorted;
+	auto &cam = gCentralizer->getComponent<ecs::Camera>(CAMERA_ENTITY);
+
 	for (const Entity &e : mEntities) {
 
-		auto &pointLight = gCentralizer->GetComponent<ecs::PointLight>(e);
-		auto &color = gCentralizer->GetComponent<ecs::Color>(e);
-		auto &transform = gCentralizer->GetComponent<ecs::Transform>(e);
+		auto &pointLight = gCentralizer->getComponent<ecs::PointLight>(e);
+		auto &color = gCentralizer->getComponent<ecs::Color>(e);
+		auto &transform = gCentralizer->getComponent<ecs::Transform>(e);
 
 		// calculate distance
-		auto offset = frameInfo.camera.getPosition() - transform.position;
+		auto offset = cam.getPosition() - transform.position;
 		float disSquared = glm::dot(offset, offset);
 		// sorted[disSquared] = obj.getId();
 		sorted[disSquared] = e;
@@ -91,9 +93,9 @@ void PointLightSystem::render(FrameInfo &frameInfo) {
 
 	for (const Entity &e : mEntities) {
 		// use game obj id to find light object
-		auto &transform = gCentralizer->GetComponent<ecs::Transform>(e);
-		auto &color = gCentralizer->GetComponent<ecs::Color>(e);
-		auto &pointLight = gCentralizer->GetComponent<ecs::PointLight>(e);
+		auto &transform = gCentralizer->getComponent<ecs::Transform>(e);
+		auto &color = gCentralizer->getComponent<ecs::Color>(e);
+		auto &pointLight = gCentralizer->getComponent<ecs::PointLight>(e);
 
 		PointLightPushConstants push{};
 		push.position = glm::vec4(transform.position, 1.f);

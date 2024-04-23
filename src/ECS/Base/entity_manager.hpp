@@ -15,10 +15,10 @@ class EntityManager {
 		}
 	}
 
-	Entity CreateEntity() {
+	Entity createEntity() {
 		// check if we can add an entity
 		assert(mLivingEntityCount < MAX_ENTITIES &&
-			   "CreateEntity : Max entities count is reached.");
+			   "createEntity : Max entities count is reached.");
 
 		// Recover the entity and remove it from the availale queue
 		Entity curr = mAvailableEntities.front();
@@ -28,11 +28,11 @@ class EntityManager {
 		return curr;
 	}
 
-	void DestroyEntity(Entity entity) {
+	void destroyEntity(Entity entity) {
 		// check if the current entity exist
 		assert(
 			entity < MAX_ENTITIES &&
-			"DestroyEntity : Entity may be already destroyed or out of range.");
+			"destroyEntity : Entity may be already destroyed or out of range.");
 
 		// set all its bit field to 0
 		mSignatures[entity].reset();
@@ -42,7 +42,7 @@ class EntityManager {
 		--mLivingEntityCount;
 	}
 
-	void SetSignature(Entity entity, Signature signature) {
+	void setSignature(Entity entity, Signature signature) {
 		// check if the entity is in range
 		assert(entity < MAX_ENTITIES &&
 			   "SetSignatue : Entity may be out of range.");
@@ -51,7 +51,7 @@ class EntityManager {
 		mSignatures[entity] = signature;
 	}
 
-	Signature GetSignature(Entity entity) {
+	Signature getSignature(Entity entity) {
 		assert(entity < MAX_ENTITIES &&
 			   "GetSignatue : Entity may be out of range.");
 		return mSignatures[entity];

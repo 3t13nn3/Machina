@@ -3,8 +3,7 @@
 #include "../Base/centralizer.hpp"
 #include "../Base/system.hpp"
 
-#include "../../vulkan/camera.hpp"
-
+#include "../Components/camera.hpp"
 #include "../Components/color.hpp"
 #include "../Components/point_light.hpp"
 #include "../Components/transform.hpp"

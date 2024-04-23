@@ -61,9 +61,6 @@ void main() {
 	outColor = vec4(pow(diffuseLight * fragColor + specularLight * fragColor,
 						vec3(0.4545)),
 					0.0) +
-			   vec4(0.f, 0.f,
-					mod(timeUbo.timeElapsed + sin(fragPosWorld.y) +
-							cos(fragPosWorld.x),
-						1),
+			   vec4(0.f, 0.f, mod(timeUbo.timeElapsed + sin(fragPosWorld.y), 2),
 					mod(timeUbo.timeElapsed + fragPosWorld.y, 2));
 }

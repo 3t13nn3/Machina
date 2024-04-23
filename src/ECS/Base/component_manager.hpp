@@ -12,11 +12,11 @@ namespace ecs {
 class ComponentManager {
 
   public:
-	template <typename T> void RegisterComponent() {
+	template <typename T> void registerComponent() {
 		// Recovering type name as a string
 		const char *typeName = typeid(T).name();
 		assert(mComponentTypes.find(typeName) == mComponentTypes.end() &&
-			   "RegisterComponent : Type already registered.");
+			   "registerComponent : Type already registered.");
 		mComponentTypes.insert({typeName, mNextComponentType});
 		// mComponentTypes[typeName] = mNextComponentType;
 		mComponentArrays.insert(
@@ -25,30 +25,30 @@ class ComponentManager {
 		++mNextComponentType;
 	}
 
-	template <typename T> ComponentType GetComponentType() {
+	template <typename T> ComponentType getComponentType() {
 		const char *typeName = typeid(T).name();
 		assert(mComponentTypes.find(typeName) != mComponentTypes.end() &&
-			   "GetComponentType : Type not registered.");
+			   "getComponentType : Type not registered.");
 		return mComponentTypes[typeName];
 	}
 
-	template <typename T> void AddComponent(Entity entity, T component) {
-		GetComponentArray<T>()->InsertData(entity, component);
+	template <typename T> void addComponent(Entity entity, T component) {
+		getComponentArray<T>()->insertData(entity, component);
 	}
 
-	template <typename T> void RemoveComponent(Entity entity) {
-		GetComponentArray<T>()->RemoveData(entity);
+	template <typename T> void removeComponent(Entity entity) {
+		getComponentArray<T>()->removeData(entity);
 	}
 
-	template <typename T> T &GetComponent(Entity entity) {
-		return GetComponentArray<T>()->GetData(entity);
+	template <typename T> T &getComponent(Entity entity) {
+		return getComponentArray<T>()->getData(entity);
 	}
 
-	void EntityDestroyed(Entity entity) {
+	void entityDestroyed(Entity entity) {
 		// For the current entity, delete in every component array tha data
 		// attached to it
 		for (const auto &e : mComponentArrays) {
-			(e.second)->EntityDestroyed(entity);
+			(e.second)->entityDestroyed(entity);
 		}
 	}
 
@@ -61,10 +61,10 @@ class ComponentManager {
 	ComponentType mNextComponentType{};
 
 	template <typename T>
-	std::shared_ptr<ComponentArray<T>> GetComponentArray() {
+	std::shared_ptr<ComponentArray<T>> getComponentArray() {
 		const char *typeName = typeid(T).name();
 		assert(mComponentTypes.find(typeName) != mComponentTypes.end() &&
-			   "GetComponentArray : Component Type not registerd.");
+			   "getComponentArray : Component Type not registerd.");
 		return std::static_pointer_cast<ComponentArray<T>>(
 			mComponentArrays[typeName]);
 	}

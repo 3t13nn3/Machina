@@ -45,8 +45,8 @@ void SimpleRenderSystem::render(FrameInfo &frameInfo) {
 
 	for (const Entity &e : mEntities) {
 
-		auto &transform = gCentralizer->GetComponent<ecs::Transform>(e);
-		auto &model = gCentralizer->GetComponent<ecs::Model>(e);
+		auto &transform = gCentralizer->getComponent<ecs::Transform>(e);
+		auto &model = gCentralizer->getComponent<ecs::Model>(e);
 
 		if (model.model == nullptr)
 			continue;

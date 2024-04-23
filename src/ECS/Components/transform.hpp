@@ -8,7 +8,7 @@ namespace ecs {
 struct Transform {
 	glm::vec3 position;
 	glm::vec3 rotation;
-	glm::vec3 scale;
+	glm::vec3 scale{1.f, 1.f, 1.f};
 
 	glm::mat4 mat4() {
 		const float c3 = glm::cos(rotation.z);

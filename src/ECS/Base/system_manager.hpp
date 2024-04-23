@@ -11,10 +11,10 @@ namespace ecs {
 class SystemManager {
   public:
 	template <typename T, typename... Args>
-	std::shared_ptr<T> RegisterSystem(Args &&...args) {
+	std::shared_ptr<T> registerSystem(Args &&...args) {
 		const char *typeName = typeid(T).name();
 		assert(mSystems.find(typeName) == mSystems.end() &&
-			   "RegisterSystem : System already exists.");
+			   "registerSystem : System already exists.");
 
 		auto sys = std::make_shared<T>(
 			std::forward<Args>(args)...); // Pass arguments to constructor
@@ -23,24 +23,24 @@ class SystemManager {
 		return sys;
 	}
 
-	template <typename T> void SetSignature(Signature signature) {
+	template <typename T> void setSignature(Signature signature) {
 		const char *typeName = typeid(T).name();
 
 		assert(mSystems.find(typeName) != mSystems.end() &&
-			   "SetSignature : System doesn't exist.");
+			   "setSignature : System doesn't exist.");
 
 		// if we want to update the signature, maybe use [] operator
 		mSignatures.insert({typeName, signature});
 	}
 
-	void EntityDestroyed(Entity entity) {
+	void entityDestroyed(Entity entity) {
 		// Erase the entity for each systems
 		for (const auto &e : mSystems) {
 			(e.second)->mEntities.erase(entity);
 		}
 	}
 
-	void EntitySignatureChanged(Entity entity, Signature entitySignature) {
+	void entitySignatureChanged(Entity entity, Signature entitySignature) {
 		// browse every system
 		for (const auto &e : mSystems) {
 			auto const &type = e.first;

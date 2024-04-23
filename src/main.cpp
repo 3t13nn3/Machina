@@ -6,26 +6,26 @@
 
 // int main() {
 
-// 	c.RegisterComponent<ecs::Transform>();
+// 	c.registerComponent<ecs::Transform>();
 
 // 	std::shared_ptr<ecs::PhysicsSystem> sys =
-// 		c.RegisterSystem<ecs::PhysicsSystem>();
+// 		c.registerSystem<ecs::PhysicsSystem>();
 
 // 	ecs::Signature sign;
-// 	sign.set(c.GetComponentType<ecs::Transform>());
+// 	sign.set(c.getComponentType<ecs::Transform>());
 
-// 	c.SetSystemSignature<ecs::PhysicsSystem>(sign);
+// 	c.setSystemSignature<ecs::PhysicsSystem>(sign);
 
 // 	std::vector<ecs::Entity> entities(ecs::MAX_ENTITIES);
 // 	for (auto &e : entities) {
-// 		e = c.CreateEntity();
+// 		e = c.createEntity();
 
-// 		c.AddComponent(e, ecs::Transform{});
+// 		c.addComponent(e, ecs::Transform{});
 // 	}
 
 // 	while (true) {
 // 		sys->Update();
-// 		std::cout << c.GetComponent<ecs::Transform>(0).position.x << std::endl;
+// 		std::cout << c.getComponent<ecs::Transform>(0).position.x << std::endl;
 // 	}
 
 // 	std::cout << "Machina !" << std::endl;

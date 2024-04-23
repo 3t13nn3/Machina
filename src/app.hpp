@@ -2,7 +2,6 @@
 
 #include "vulkan/descriptors.hpp"
 #include "vulkan/device.hpp"
-#include "vulkan/game_object.hpp"
 #include "vulkan/renderer.hpp"
 #include "vulkan/window.hpp"
 
@@ -25,7 +24,9 @@ class App {
 	void run();
 
   private:
-	void loadGameObjects();
+	void registerComponents();
+	void setSignatures();
+	void createEntities();
 
 	Window mVuWindow{WIDTH, HEIGHT, "Machina !"};
 	Device mVuDevice{mVuWindow};
@@ -33,6 +34,5 @@ class App {
 
 	// note: order of declarations matters
 	std::unique_ptr<DescriptorPool> mGlobalPool{};
-	GameObject::Map mGameObjects;
 };
 } // namespace vu
