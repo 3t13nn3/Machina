@@ -23,11 +23,12 @@ extern std::unique_ptr<ecs::Centralizer> gCentralizer;
 namespace vu {
 
 App::App() {
-	mGlobalPool = DescriptorPool::Builder(mVuDevice)
-					  .setMaxSets(SwapChain::MAX_FRAMES_IN_FLIGHT * 2)
-					  .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-								   SwapChain::MAX_FRAMES_IN_FLIGHT * 2)
-					  .build();
+	// Init the UniformBufferManager first
+	mUniformBufferManager =
+		UniformBufferManager::Builder(mVuDevice)
+			.addUniformBuffer<GlobalUbo>(VK_SHADER_STAGE_ALL_GRAPHICS)
+			.addUniformBuffer<float>(VK_SHADER_STAGE_ALL_GRAPHICS)
+			.build();
 }
 
 App::~App() {}
@@ -130,59 +131,15 @@ void App::createEntities() {
 
 void App::run() {
 
-	struct TimeUbo {
-		float timeElapsed;
-	};
-
-	std::vector<std::unique_ptr<Buffer>> uboBuffers(
-		SwapChain::MAX_FRAMES_IN_FLIGHT);
-	for (int i = 0; i < uboBuffers.size(); i++) {
-		uboBuffers[i] = std::make_unique<Buffer>(
-			mVuDevice, sizeof(GlobalUbo), 1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-		uboBuffers[i]->map();
-	}
-
-	std::vector<std::unique_ptr<Buffer>> timeUboBuffers(
-		SwapChain::MAX_FRAMES_IN_FLIGHT);
-	for (int i = 0; i < timeUboBuffers.size(); i++) {
-		timeUboBuffers[i] = std::make_unique<Buffer>(
-			mVuDevice, sizeof(TimeUbo), 1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-		timeUboBuffers[i]->map();
-	}
-
-	auto globalSetLayout = DescriptorSetLayout::Builder(mVuDevice)
-							   .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-										   VK_SHADER_STAGE_ALL_GRAPHICS)
-							   .addBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-										   VK_SHADER_STAGE_ALL_GRAPHICS)
-							   .build();
-
-	std::vector<VkDescriptorSet> globalDescriptorSets(
-		SwapChain::MAX_FRAMES_IN_FLIGHT);
-	for (int i = 0; i < globalDescriptorSets.size(); i++) {
-		auto bufferInfo = uboBuffers[i]->descriptorInfo();
-		auto timeBufferInfo =
-			timeUboBuffers[i]->descriptorInfo(); // Obtenez les informations sur
-												 // le tampon du UBO du temps
-		DescriptorWriter(*globalSetLayout, *mGlobalPool)
-			.writeBuffer(0, &bufferInfo)
-			.writeBuffer(
-				1,
-				&timeBufferInfo) // Écrivez également le tampon du UBO du temps
-			.build(globalDescriptorSets[i]);
-	}
-
 	std::shared_ptr<ecs::SimpleRenderSystem> simpleRenderSystem =
 		gCentralizer->registerSystem<ecs::SimpleRenderSystem>(
 			mVuDevice, mVuRenderer.getSwapChainRenderPass(),
-			globalSetLayout->getDescriptorSetLayout());
+			mUniformBufferManager->getDescriptorSetLayout());
 
 	std::shared_ptr<ecs::PointLightSystem> pointLightSystem =
 		gCentralizer->registerSystem<ecs::PointLightSystem>(
 			mVuDevice, mVuRenderer.getSwapChainRenderPass(),
-			globalSetLayout->getDescriptorSetLayout());
+			mUniformBufferManager->getDescriptorSetLayout());
 
 	std::shared_ptr<ecs::CameraSystem> cameraSystem =
 		gCentralizer->registerSystem<ecs::CameraSystem>();
@@ -211,27 +168,24 @@ void App::run() {
 
 		if (auto commandBuffer = mVuRenderer.beginFrame()) {
 			int frameIndex = mVuRenderer.getFrameIndex();
-			FrameInfo frameInfo{frameIndex, frameTime, commandBuffer,
-								globalDescriptorSets[frameIndex]};
+			FrameInfo frameInfo{
+				frameIndex, frameTime, commandBuffer,
+				mUniformBufferManager->getGlobalDescriptorSets()[frameIndex]};
 
-			// update
+			// declare ubo
 			GlobalUbo ubo{};
 			float aspect = mVuRenderer.getAspectRatio();
 			cameraSystem->update(ubo, aspect);
 			pointLightSystem->update(frameInfo, ubo);
 
-			uboBuffers[frameIndex]->writeToBuffer(&ubo);
-			uboBuffers[frameIndex]->flush();
-
-			// Initialisez les données du UBO du temps
-			TimeUbo timeUboData;
-			timeUboData.timeElapsed =
+			float timeUboData =
 				std::chrono::duration<float, std::chrono::seconds::period>(
 					newTime - startTime)
 					.count();
 
-			timeUboBuffers[frameIndex]->writeToBuffer(&timeUboData);
-			timeUboBuffers[frameIndex]->flush();
+			// update ubo
+			mUniformBufferManager->update(0, ubo, frameIndex);
+			mUniformBufferManager->update(1, timeUboData, frameIndex);
 
 			// render
 			mVuRenderer.beginSwapChainRenderPass(commandBuffer);

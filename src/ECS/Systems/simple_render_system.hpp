@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../../vulkan/uniform_buffer_type.hpp"
+
 #include "../Base/centralizer.hpp"
 #include "../Base/system.hpp"
 

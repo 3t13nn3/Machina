@@ -52,7 +52,7 @@ void CameraSystem::setViewYXZ() {
 						  (c1 * c3 * s2 + s1 * s3)};
 		const glm::vec3 w{(c2 * s1), (-s2), (c1 * c2)};
 
-		auto &cam = gCentralizer->getComponent<ecs::Camera>(CAMERA_ENTITY);
+		auto &cam = gCentralizer->getComponent<ecs::Camera>(e);
 		cam.viewMatrix = glm::mat4{1.f};
 		cam.viewMatrix[0][0] = u.x;
 		cam.viewMatrix[1][0] = u.y;

@@ -3,6 +3,7 @@
 #include "vulkan/descriptors.hpp"
 #include "vulkan/device.hpp"
 #include "vulkan/renderer.hpp"
+#include "vulkan/uniform_buffer.hpp"
 #include "vulkan/window.hpp"
 
 // std
@@ -32,7 +33,6 @@ class App {
 	Device mVuDevice{mVuWindow};
 	Renderer mVuRenderer{mVuWindow, mVuDevice};
 
-	// note: order of declarations matters
-	std::unique_ptr<DescriptorPool> mGlobalPool{};
+	std::unique_ptr<UniformBufferManager> mUniformBufferManager{};
 };
 } // namespace vu
