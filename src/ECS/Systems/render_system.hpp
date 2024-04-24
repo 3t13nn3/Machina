@@ -18,26 +18,24 @@ namespace ecs {
 
 // Classe de base pour les systèmes de rendu
 class IRenderSystem : public System {
-  public:
-	IRenderSystem(Device &device, VkRenderPass renderPass,
-				  VkDescriptorSetLayout globalSetLayout);
-	~IRenderSystem();
+public:
+  IRenderSystem(Device &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
+  ~IRenderSystem();
 
-	IRenderSystem(const IRenderSystem &) = delete;
-	IRenderSystem &operator=(const IRenderSystem &) = delete;
+  IRenderSystem(const IRenderSystem &) = delete;
+  IRenderSystem &operator=(const IRenderSystem &) = delete;
 
-	virtual void render(FrameInfo &frameInfo) = 0;
-	virtual void update(FrameInfo &frameInfo, GlobalUbo &ubo);
+  virtual void render(FrameInfo &frameInfo) = 0;
+  virtual void update(FrameInfo &frameInfo, GlobalUbo &ubo);
 
-  protected:
-	uint32_t mPushConstantRangeSize;
-	void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
-	virtual void createPipeline(VkRenderPass renderPass);
-	void initPipeline(VkRenderPass renderPass,
-					  VkDescriptorSetLayout globalSetLayout);
+protected:
+  uint32_t mPushConstantRangeSize;
+  void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
+  virtual void createPipeline(VkRenderPass renderPass);
+  void initPipeline(VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
 
-	Device &mVuDevice;
-	std::unique_ptr<Pipeline> mVuPipeline;
-	VkPipelineLayout mPipelineLayout;
+  Device &mVuDevice;
+  std::unique_ptr<Pipeline> mVuPipeline;
+  VkPipelineLayout mPipelineLayout;
 };
 } // namespace ecs

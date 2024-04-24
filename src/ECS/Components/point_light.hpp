@@ -5,7 +5,7 @@
 namespace ecs {
 
 struct PointLight {
-	float lightIntensity{1.0f};
+  float lightIntensity{1.0f};
 };
 
 } // namespace ecs

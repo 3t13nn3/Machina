@@ -19,21 +19,20 @@
 using namespace vu;
 
 struct PointLightPushConstants {
-	glm::vec4 position{};
-	glm::vec4 color{};
-	float radius;
+  glm::vec4 position{};
+  glm::vec4 color{};
+  float radius;
 };
 
 namespace ecs {
 class PointLightSystem : public IRenderSystem {
-  public:
-	PointLightSystem(Device &device, VkRenderPass renderPass,
-					 VkDescriptorSetLayout globalSetLayout);
+public:
+  PointLightSystem(Device &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
 
-	void render(FrameInfo &frameInfo) override;
-	void update(FrameInfo &frameInfo, GlobalUbo &ubo) override;
+  void render(FrameInfo &frameInfo) override;
+  void update(FrameInfo &frameInfo, GlobalUbo &ubo) override;
 
-  protected:
-	void createPipeline(VkRenderPass renderPass) override;
+protected:
+  void createPipeline(VkRenderPass renderPass) override;
 };
 } // namespace ecs

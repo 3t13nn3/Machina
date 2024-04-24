@@ -5,7 +5,7 @@
 namespace ecs {
 
 struct Gravity {
-	glm::vec3 force;
+  glm::vec3 force;
 };
 
 } // namespace ecs

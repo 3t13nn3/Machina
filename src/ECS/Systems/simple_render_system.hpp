@@ -17,19 +17,19 @@
 using namespace vu;
 
 struct SimplePushConstantData {
-	glm::mat4 modelMatrix{1.f};
-	glm::mat4 normalMatrix{1.f};
+  glm::mat4 modelMatrix{1.f};
+  glm::mat4 normalMatrix{1.f};
 };
 
 namespace ecs {
 class SimpleRenderSystem : public IRenderSystem {
-  public:
-	SimpleRenderSystem(Device &device, VkRenderPass renderPass,
-					   VkDescriptorSetLayout globalSetLayout);
-	void render(FrameInfo &frameInfo) override;
-	void update(FrameInfo &frameInfo, GlobalUbo &ubo) override;
+public:
+  SimpleRenderSystem(Device &device, VkRenderPass renderPass,
+                     VkDescriptorSetLayout globalSetLayout);
+  void render(FrameInfo &frameInfo) override;
+  void update(FrameInfo &frameInfo, GlobalUbo &ubo) override;
 
-  protected:
-	void createPipeline(VkRenderPass renderPass) override;
+protected:
+  void createPipeline(VkRenderPass renderPass) override;
 };
 } // namespace ecs

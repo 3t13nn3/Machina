@@ -5,9 +5,9 @@
 namespace vu {
 
 struct FrameInfo {
-	int frameIndex;
-	float frameTime;
-	VkCommandBuffer commandBuffer;
-	VkDescriptorSet globalDescriptorSet;
+  int frameIndex;
+  float frameTime;
+  VkCommandBuffer commandBuffer;
+  VkDescriptorSet globalDescriptorSet;
 };
 } // namespace vu

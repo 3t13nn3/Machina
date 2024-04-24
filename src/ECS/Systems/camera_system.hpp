@@ -15,13 +15,12 @@ using namespace vu;
 namespace ecs {
 class CameraSystem : public System {
 
-  public:
-	void update(GlobalUbo &ubo, float aspect);
+public:
+  void update(GlobalUbo &ubo, float aspect);
 
-	void setPerspectiveProjection(float fovy, float aspect, float near,
-								  float far);
+  void setPerspectiveProjection(float fovy, float aspect, float near, float far);
 
-  private:
-	void setViewYXZ();
+private:
+  void setViewYXZ();
 };
 } // namespace ecs

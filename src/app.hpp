@@ -12,27 +12,27 @@
 
 namespace vu {
 class App {
-  public:
-	static constexpr int WIDTH = 800;
-	static constexpr int HEIGHT = 600;
+public:
+  static constexpr int WIDTH = 800;
+  static constexpr int HEIGHT = 600;
 
-	App();
-	~App();
+  App();
+  ~App();
 
-	App(const App &) = delete;
-	App &operator=(const App &) = delete;
+  App(const App &) = delete;
+  App &operator=(const App &) = delete;
 
-	void run();
+  void run();
 
-  private:
-	void registerComponents();
-	void setSignatures();
-	void createEntities();
+private:
+  void registerComponents();
+  void setSignatures();
+  void createEntities();
 
-	Window mVuWindow{WIDTH, HEIGHT, "Machina !"};
-	Device mVuDevice{mVuWindow};
-	Renderer mVuRenderer{mVuWindow, mVuDevice};
+  Window mVuWindow{WIDTH, HEIGHT, "Machina !"};
+  Device mVuDevice{mVuWindow};
+  Renderer mVuRenderer{mVuWindow, mVuDevice};
 
-	std::unique_ptr<UniformBufferManager> mUniformBufferManager{};
+  std::unique_ptr<UniformBufferManager> mUniformBufferManager{};
 };
 } // namespace vu

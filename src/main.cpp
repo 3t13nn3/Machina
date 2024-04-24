@@ -46,16 +46,16 @@ std::unique_ptr<ecs::Centralizer> gCentralizer{};
 
 int main() {
 
-	gCentralizer = std::make_unique<ecs::Centralizer>();
+  gCentralizer = std::make_unique<ecs::Centralizer>();
 
-	vu::App app{};
+  vu::App app{};
 
-	try {
-		app.run();
-	} catch (const std::exception &e) {
-		std::cerr << e.what() << '\n';
-		return EXIT_FAILURE;
-	}
+  try {
+    app.run();
+  } catch (const std::exception &e) {
+    std::cerr << e.what() << '\n';
+    return EXIT_FAILURE;
+  }
 
-	return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
 }

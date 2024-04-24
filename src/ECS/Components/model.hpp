@@ -9,7 +9,7 @@
 namespace ecs {
 
 struct Model {
-	std::shared_ptr<vu::Model> model{};
+  std::shared_ptr<vu::Model> model{};
 };
 
 } // namespace ecs

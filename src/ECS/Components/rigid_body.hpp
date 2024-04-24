@@ -5,8 +5,8 @@
 namespace ecs {
 
 struct RigidBody {
-	glm::vec3 velocity;
-	glm::vec3 acceleration;
+  glm::vec3 velocity;
+  glm::vec3 acceleration;
 };
 
 } // namespace ecs
