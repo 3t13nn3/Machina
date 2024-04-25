@@ -6,6 +6,8 @@
 #include "vulkan/uniform_buffer.hpp"
 #include "vulkan/window.hpp"
 
+// #include "ECS/ECS.hpp"
+
 // std
 #include <memory>
 #include <vector>
@@ -13,8 +15,8 @@
 namespace vu {
 class App {
 public:
-  static constexpr int WIDTH = 800;
-  static constexpr int HEIGHT = 600;
+  static constexpr int WIDTH = 1600;
+  static constexpr int HEIGHT = 1200;
 
   App();
   ~App();

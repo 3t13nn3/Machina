@@ -7,7 +7,7 @@ namespace ecs {
 void CameraSystem::update(GlobalUbo &ubo, float aspect) {
   for (const Entity &e : mEntities) {
     setViewYXZ();
-    setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 100.f);
+    setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 1000.f);
 
     auto &cam = gCentralizer->getComponent<ecs::Camera>(e);
     ubo.projection = cam.projectionMatrix;

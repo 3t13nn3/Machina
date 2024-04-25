@@ -2,6 +2,7 @@
 
 #include "ECS/Systems/camera_input_system.hpp"
 #include "ECS/Systems/camera_system.hpp"
+#include "ECS/Systems/gravity_system.hpp"
 #include "ECS/Systems/point_light_system.hpp"
 #include "ECS/Systems/simple_render_system.hpp"
 #include "vulkan/buffer.hpp"
@@ -16,6 +17,7 @@
 #include <array>
 #include <cassert>
 #include <chrono>
+#include <random>
 #include <stdexcept>
 
 extern std::unique_ptr<ecs::Centralizer> gCentralizer;
@@ -38,6 +40,8 @@ void App::registerComponents() {
   gCentralizer->registerComponent<ecs::Color>();
   gCentralizer->registerComponent<ecs::PointLight>();
   gCentralizer->registerComponent<ecs::Camera>();
+  gCentralizer->registerComponent<ecs::Gravity>();
+  gCentralizer->registerComponent<ecs::RigidBody>();
 }
 
 void App::setSignatures() {
@@ -57,6 +61,12 @@ void App::setSignatures() {
   cameraSignature.set(gCentralizer->getComponentType<ecs::Transform>());
   gCentralizer->setSystemSignature<ecs::CameraSystem>(cameraSignature);
   gCentralizer->setSystemSignature<ecs::CameraInputSystem>(cameraSignature);
+
+  ecs::Signature gravitySignature;
+  gravitySignature.set(gCentralizer->getComponentType<ecs::Transform>());
+  gravitySignature.set(gCentralizer->getComponentType<ecs::Gravity>());
+  gravitySignature.set(gCentralizer->getComponentType<ecs::RigidBody>());
+  gCentralizer->setSystemSignature<ecs::GravitySystem>(gravitySignature);
 }
 
 void App::createEntities() {
@@ -76,15 +86,23 @@ void App::createEntities() {
         Model::createModelFromFile(mVuDevice, "models/flat_vase.obj");
     gCentralizer->addComponent(e, ecs::Model{std::move(currentModel)});
 
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dis(4.0f, 16.0f);
+
     currentModel = Model::createModelFromFile(mVuDevice, "models/cube.obj");
     for (size_t i{0}; i < 30; ++i) {
       for (size_t j{0}; j < 30; ++j) {
+        float z = dis(gen);
         e = gCentralizer->createEntity();
-        gCentralizer->addComponent(e, ecs::Transform{{(j % 2 ? (i + 0.5f) : (i)) - 15.f,
-                                                      (i % 2 ? j : (j + 0.5f)) - 15.f, 6.f},
-                                                     {0.f, 0.f, 0.f},
-                                                     {0.25f, 0.25f, 0.25f}});
+        gCentralizer->addComponent(
+            e,
+            ecs::Transform{{(j % 2 ? (i + 0.5f) : (i)) - 15.f, (i % 2 ? j : (j + 0.5f)) - 15.f, z},
+                           {i, j, i * j},
+                           {j % 4 ? (0.25) : (0.125), i % 4 ? (0.125) : (0.25), 0.25f}});
         gCentralizer->addComponent(e, ecs::Model{currentModel});
+        gCentralizer->addComponent(e, ecs::Gravity{{0.f, ecs::GRAVITY_CONSTANT, 0.f}});
+        gCentralizer->addComponent(e, ecs::RigidBody{{}, {}, 1.f});
       }
     }
 
@@ -134,6 +152,9 @@ void App::run() {
   std::shared_ptr<ecs::CameraInputSystem> cameraInputSystem =
       gCentralizer->registerSystem<ecs::CameraInputSystem>(mVuWindow.getGLFWwindow());
 
+  std::shared_ptr<ecs::GravitySystem> gravitySystem =
+      gCentralizer->registerSystem<ecs::GravitySystem>();
+
   registerComponents();
   setSignatures();
   createEntities();
@@ -154,6 +175,8 @@ void App::run() {
       int frameIndex = mVuRenderer.getFrameIndex();
       FrameInfo frameInfo{frameIndex, frameTime, commandBuffer,
                           mUniformBufferManager->getGlobalDescriptorSets()[frameIndex]};
+
+      gravitySystem->update(frameInfo);
 
       // declare ubo
       GlobalUbo ubo{};

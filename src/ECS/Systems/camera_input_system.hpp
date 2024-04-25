@@ -31,8 +31,8 @@ public:
   void update(float dt);
 
   KeyMappings mKeys{};
-  float mMoveSpeed{3.f};
-  float mLookSpeed{1.5f};
+  float mMoveSpeed{10.f};
+  float mLookSpeed{2.5f};
 
 private:
   GLFWwindow *mWindow;
