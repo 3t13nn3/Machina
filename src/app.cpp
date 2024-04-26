@@ -2,6 +2,7 @@
 
 #include "ECS/Systems/camera_input_system.hpp"
 #include "ECS/Systems/camera_system.hpp"
+#include "ECS/Systems/collision_system.hpp"
 #include "ECS/Systems/gravity_system.hpp"
 #include "ECS/Systems/point_light_system.hpp"
 #include "ECS/Systems/simple_render_system.hpp"
@@ -75,6 +76,8 @@ void App::createEntities() {
     ecs::Entity e = gCentralizer->createEntity();
     gCentralizer->addComponent(e, ecs::Camera{});
     gCentralizer->addComponent(e, ecs::Transform{{0.f, 0.f, -2.5f}, {}, {}});
+    // gCentralizer->addComponent(e, ecs::Gravity{{0.f, ecs::GRAVITY_CONSTANT, 0.f}});
+    // gCentralizer->addComponent(e, ecs::RigidBody{{}, {}, 1.f});
   }
 
   // Object
@@ -89,6 +92,8 @@ void App::createEntities() {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<float> dis(4.0f, 16.0f);
+    std::uniform_real_distribution<float> dis2(.5f, .05f);
+    std::uniform_real_distribution<float> dis3(-5.f, 5.f);
 
     currentModel = Model::createModelFromFile(mVuDevice, "models/cube.obj");
     for (size_t i{0}; i < 30; ++i) {
@@ -96,19 +101,20 @@ void App::createEntities() {
         float z = dis(gen);
         e = gCentralizer->createEntity();
         gCentralizer->addComponent(
-            e,
-            ecs::Transform{{(j % 2 ? (i + 0.5f) : (i)) - 15.f, (i % 2 ? j : (j + 0.5f)) - 15.f, z},
-                           {i, j, i * j},
-                           {j % 4 ? (0.25) : (0.125), i % 4 ? (0.125) : (0.25), 0.25f}});
+            e, ecs::Transform{
+                   {(j % 2 ? (i + 0.5f) : (i)) - 15.f, (i % 2 ? j : (j + 0.5f)) - 15.f, 15.f + z},
+                   {i, j, i * j},
+                   {j % 4 ? (0.25) : (0.125), i % 4 ? (0.125) : (0.25), 0.25f}});
+        //{4.f, 2.f, 4.f}});
         gCentralizer->addComponent(e, ecs::Model{currentModel});
         gCentralizer->addComponent(e, ecs::Gravity{{0.f, ecs::GRAVITY_CONSTANT, 0.f}});
-        gCentralizer->addComponent(e, ecs::RigidBody{{}, {}, 1.f});
+        gCentralizer->addComponent(e, ecs::RigidBody{{}, {}, dis2(gen)});
       }
     }
 
     e = gCentralizer->createEntity();
     gCentralizer->addComponent(e,
-                               ecs::Transform{{0.f, .5f, 0.f}, {0.f, 0.f, 0.f}, {3.f, 1.f, 3.f}});
+                               ecs::Transform{{0.f, .5f, 20.f}, {0.f, 0.f, 0.f}, {3.f, 1.f, 3.f}});
     currentModel = Model::createModelFromFile(mVuDevice, "models/quad.obj");
     gCentralizer->addComponent(e, ecs::Model{std::move(currentModel)});
   }

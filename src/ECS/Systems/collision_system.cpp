@@ -1,12 +1,12 @@
-#include "gravity_system.hpp"
+#include "collision_system.hpp"
 
 extern std::unique_ptr<ecs::Centralizer> gCentralizer;
 
 namespace ecs {
 
-GravitySystem::GravitySystem() {}
+CollisionSystem::CollisionSystem() {}
 
-void GravitySystem::update(FrameInfo &frameInfo) {
+void CollisionSystem::update(FrameInfo &frameInfo) {
   std::cout << mEntities.size() << std::endl;
   for (const Entity &e : mEntities) {
     auto &gravity = gCentralizer->getComponent<ecs::Gravity>(e);
