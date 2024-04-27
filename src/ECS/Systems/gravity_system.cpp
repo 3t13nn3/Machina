@@ -7,7 +7,6 @@ namespace ecs {
 GravitySystem::GravitySystem() {}
 
 void GravitySystem::update(FrameInfo &frameInfo) {
-  std::cout << mEntities.size() << std::endl;
   for (const Entity &e : mEntities) {
     auto &gravity = gCentralizer->getComponent<ecs::Gravity>(e);
     auto &rigidBody = gCentralizer->getComponent<ecs::RigidBody>(e);
