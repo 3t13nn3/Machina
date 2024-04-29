@@ -75,36 +75,48 @@ void App::createEntities() {
   {
     ecs::Entity e = gCentralizer->createEntity();
     gCentralizer->addComponent(e, ecs::Camera{});
-    gCentralizer->addComponent(e, ecs::Transform{{0.f, 0.f, -2.5f}, {}, {}});
+    gCentralizer->addComponent(e, ecs::Transform{{0.f, 2.f, -2.5f}, {}, {}});
     // gCentralizer->addComponent(e, ecs::Gravity{{0.f, ecs::GRAVITY_CONSTANT, 0.f}});
     // gCentralizer->addComponent(e, ecs::RigidBody{{}, {}, 1.f});
   }
 
+  std::random_device rd;
+  std::mt19937 gen(rd());
   // Object
   {
-    ecs::Entity e = gCentralizer->createEntity();
-    gCentralizer->addComponent(e,
-                               ecs::Transform{{-.5f, .5f, 0.f}, {0.f, 0.f, 0.f}, {3.f, 3.f, 3.f}});
-    std::shared_ptr<Model> currentModel = Model::createModelFromFile(mVuDevice, "models/Tree.obj");
-    gCentralizer->addComponent(e, ecs::Model{std::move(currentModel)});
-
-    e = gCentralizer->createEntity();
-    gCentralizer->addComponent(
-        e, ecs::Transform{{-1.5f, 1.5f, 1.f}, {0.f, 0.f, 0.f}, {1.f, 1.f, 1.f}});
-    currentModel = Model::createModelFromFile(mVuDevice, "models/cube.obj");
-    gCentralizer->addComponent(e, ecs::Model{std::move(currentModel)});
-
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> col(0.0f, 1.0f);
     std::uniform_real_distribution<float> dis(4.0f, 16.0f);
     std::uniform_real_distribution<float> dis2(.5f, .05f);
     std::uniform_real_distribution<float> dis3(-5.f, 5.f);
 
-    currentModel = Model::createModelFromFile(mVuDevice, "models/Tree.obj");
-    for (size_t i{0}; i < 30; ++i) {
-      for (size_t j{0}; j < 30; ++j) {
+    std::shared_ptr<Model> treeModel = Model::createModelFromFile(mVuDevice, "models/Tree.obj");
+    std::shared_ptr<Model> cubeModel = Model::createModelFromFile(mVuDevice, "models/cube.obj");
+
+    for (size_t i{0}; i < 40; ++i) {
+      for (size_t j{0}; j < 40; ++j) {
+        float h = col(gen) * 10;
+        ecs::Entity treeEntity = gCentralizer->createEntity();
+        gCentralizer->addComponent(treeEntity, ecs::Transform{{i * 14, .5f + h, j * 14},
+                                                              {0.f, col(gen) * 360.f, 0.f},
+                                                              {3.f, 3.f, 3.f}});
+
+        gCentralizer->addComponent(treeEntity, ecs::Model{treeModel});
+        gCentralizer->addComponent(treeEntity, ecs::Color{{col(gen), col(gen), col(gen)}});
+
+        ecs::Entity cubeEntity = gCentralizer->createEntity();
+        gCentralizer->addComponent(cubeEntity, ecs::Model{cubeModel});
+        gCentralizer->addComponent(
+            cubeEntity,
+            ecs::Transform{{i * 14, -.5f + h, j * 14}, {0.f, 0.f, 0.f}, {1.f, 1.f, 1.f}});
+        gCentralizer->addComponent(cubeEntity, ecs::Color{{col(gen), col(gen), col(gen)}});
+      }
+    }
+
+    std::shared_ptr<Model> currentModel = Model::createModelFromFile(mVuDevice, "models/Tree.obj");
+    for (size_t i{0}; i < 4; ++i) {
+      for (size_t j{0}; j < 4; ++j) {
         float z = dis(gen);
-        e = gCentralizer->createEntity();
+        ecs::Entity e = gCentralizer->createEntity();
         gCentralizer->addComponent(
             e, ecs::Transform{
                    {(j % 2 ? (i + 0.5f) : (i)) - 15.f, (i % 2 ? j : (j + 0.5f)) - 15.f, 15.f + z},
@@ -114,14 +126,10 @@ void App::createEntities() {
         gCentralizer->addComponent(e, ecs::Model{currentModel});
         gCentralizer->addComponent(e, ecs::Gravity{{0.f, ecs::GRAVITY_CONSTANT, 0.f}});
         gCentralizer->addComponent(e, ecs::RigidBody{{}, {}, dis2(gen)});
+        gCentralizer->addComponent(e, ecs::Color{{0.5f + dis3(gen) / 10.f, 0.5f + dis3(gen) / 10.f,
+                                                  0.5f + dis3(gen) / 10.f}});
       }
     }
-
-    e = gCentralizer->createEntity();
-    gCentralizer->addComponent(
-        e, ecs::Transform{{0.f, .5f, 20.f}, {0.f, 0.f, 0.f}, {300.f, 1.f, 300.f}});
-    currentModel = Model::createModelFromFile(mVuDevice, "models/quad.obj");
-    gCentralizer->addComponent(e, ecs::Model{std::move(currentModel)});
   }
 
   // Light
@@ -136,7 +144,7 @@ void App::createEntities() {
           glm::mat4(1.f), (i * glm::two_pi<float>()) / lightColors.size(), {0.f, -1.f, 0.f});
       ecs::Entity e = gCentralizer->createEntity();
       gCentralizer->addComponent(
-          e, ecs::Transform{glm::vec3(rotateLight * glm::vec4(-1.f, 5.f, -1.f, 1.f)),
+          e, ecs::Transform{glm::vec3(rotateLight * glm::vec4(-1.f, 1.f, -1.f, 1.f)),
                             {0.f, 0.f, 0.f},
                             {0.1f, 0.1f, 0.1f}});
       gCentralizer->addComponent(e, ecs::Color{lightColors[i]});
@@ -193,6 +201,8 @@ void App::run() {
       GlobalUbo ubo{};
       float aspect = mVuRenderer.getAspectRatio();
       cameraSystem->update(ubo, aspect);
+
+      // simpleRenderSystem->update(frameInfo, ubo);
       pointLightSystem->update(frameInfo, ubo);
 
       float timeUboData =

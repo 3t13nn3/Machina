@@ -61,33 +61,18 @@ void PointLightSystem::update(FrameInfo &frameInfo, GlobalUbo &ubo) {
 }
 
 void PointLightSystem::render(FrameInfo &frameInfo) {
-  // sort lights
-  std::map<float, ecs::Entity> sorted;
-  auto &cam = gCentralizer->getComponent<ecs::Camera>(CAMERA_ENTITY);
-
-  for (const Entity &e : mEntities) {
-
-    auto &pointLight = gCentralizer->getComponent<ecs::PointLight>(e);
-    auto &color = gCentralizer->getComponent<ecs::Color>(e);
-    auto &transform = gCentralizer->getComponent<ecs::Transform>(e);
-
-    // calculate distance
-    auto offset = cam.getPosition() - transform.position;
-    float disSquared = glm::dot(offset, offset);
-    // sorted[disSquared] = obj.getId();
-    sorted[disSquared] = e;
-  }
+  std::map<float, ecs::Entity> sorted = getSortedEntities(mEntities);
 
   mVuPipeline->bind(frameInfo.commandBuffer);
 
   vkCmdBindDescriptorSets(frameInfo.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout,
                           0, 1, &frameInfo.globalDescriptorSet, 0, nullptr);
 
-  for (const Entity &e : mEntities) {
+  for (auto it = sorted.rbegin(); it != sorted.rend(); ++it) {
     // use game obj id to find light object
-    auto &transform = gCentralizer->getComponent<ecs::Transform>(e);
-    auto &color = gCentralizer->getComponent<ecs::Color>(e);
-    auto &pointLight = gCentralizer->getComponent<ecs::PointLight>(e);
+    auto &transform = gCentralizer->getComponent<ecs::Transform>(it->second);
+    auto &color = gCentralizer->getComponent<ecs::Color>(it->second);
+    auto &pointLight = gCentralizer->getComponent<ecs::PointLight>(it->second);
 
     PointLightPushConstants push{};
     push.position = glm::vec4(transform.position, 1.f);

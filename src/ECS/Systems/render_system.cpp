@@ -1,5 +1,7 @@
 #include "render_system.hpp"
 
+extern std::unique_ptr<ecs::Centralizer> gCentralizer;
+
 namespace ecs {
 
 IRenderSystem::IRenderSystem(Device &device, VkRenderPass renderPass,
@@ -33,6 +35,28 @@ void IRenderSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout) 
       VK_SUCCESS) {
     throw std::runtime_error("failed to create pipeline layout!");
   }
+}
+
+std::map<float, ecs::Entity> const
+IRenderSystem::getSortedEntities(const std::set<Entity> &entities) {
+  std::map<float, ecs::Entity> sorted;
+
+  // Récupérer la caméra à partir du centralizer
+  auto &camera = gCentralizer->getComponent<ecs::Camera>(CAMERA_ENTITY);
+  // glm::vec3 viewDirection = camera.getViewDirection();
+
+  for (const Entity &e : entities) {
+    auto &transform = gCentralizer->getComponent<ecs::Transform>(e);
+    glm::vec3 cameraToObject = transform.position - camera.getPosition();
+
+    // Vérifier si l'objet est devant la caméra (distance positive)
+    // if (glm::dot(cameraToObject, viewDirection) > 0) {
+    float distance = glm::length(cameraToObject);
+    sorted.emplace(distance, e);
+    //}
+  }
+
+  return sorted;
 }
 
 void IRenderSystem::createPipeline(VkRenderPass renderPass) {}

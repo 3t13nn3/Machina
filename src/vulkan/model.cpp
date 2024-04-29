@@ -11,6 +11,7 @@
 // std
 #include <cassert>
 #include <cstring>
+#include <iostream>
 #include <unordered_map>
 
 #ifndef ENGINE_DIR
@@ -138,10 +139,10 @@ void Model::Builder::loadModel(const std::string &filepath) {
   tinyobj::attrib_t attrib;
   std::vector<tinyobj::shape_t> shapes;
   std::vector<tinyobj::material_t> materials;
-  std::string warn, err;
+  std::string err;
 
-  if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str())) {
-    throw std::runtime_error(warn + err);
+  if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, filepath.c_str())) {
+    throw std::runtime_error(err);
   }
 
   vertices.clear();
@@ -159,11 +160,7 @@ void Model::Builder::loadModel(const std::string &filepath) {
             attrib.vertices[3 * index.vertex_index + 2],
         };
 
-        vertex.color = {
-            attrib.colors[3 * index.vertex_index + 0],
-            attrib.colors[3 * index.vertex_index + 1],
-            attrib.colors[3 * index.vertex_index + 2],
-        };
+        vertex.color = glm::vec3{1.f, 1.f, 1.f}; // white by default
       }
 
       if (index.normal_index >= 0) {

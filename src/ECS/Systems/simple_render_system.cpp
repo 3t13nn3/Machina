@@ -27,7 +27,7 @@ void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
 
   PipelineConfigInfo pipelineConfig{};
   createPipelineConfigInfo(pipelineConfig);
-  // Pipeline::enableAlphaBlending(pipelineConfig);
+  Pipeline::enableAlphaBlending(pipelineConfig);
   pipelineConfig.renderPass = renderPass;
   pipelineConfig.pipelineLayout = mPipelineLayout;
   mVuPipeline = std::make_unique<Pipeline>(mVuDevice, "shaders/simple_shader.vert.spv",
@@ -40,16 +40,25 @@ void SimpleRenderSystem::render(FrameInfo &frameInfo) {
   vkCmdBindDescriptorSets(frameInfo.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout,
                           0, 1, &frameInfo.globalDescriptorSet, 0, nullptr);
 
-  for (const Entity &e : mEntities) {
+  std::map<float, ecs::Entity> sorted = getSortedEntities(mEntities);
 
-    auto &transform = gCentralizer->getComponent<ecs::Transform>(e);
-    auto &model = gCentralizer->getComponent<ecs::Model>(e);
+  auto &cam = gCentralizer->getComponent<ecs::Camera>(CAMERA_ENTITY);
+  glm::vec3 camPos = cam.getPosition();
+  camPos.y = 0.0f;
+  for (auto it = sorted.rbegin(); it != sorted.rend(); ++it) {
+    auto &transform = gCentralizer->getComponent<ecs::Transform>(it->second);
+    auto &model = gCentralizer->getComponent<ecs::Model>(it->second);
+    auto &color = gCentralizer->getComponent<ecs::Color>(it->second);
 
     if (model.model == nullptr)
       continue;
     SimplePushConstantData push{};
     push.modelMatrix = transform.mat4();
     push.normalMatrix = transform.normalMatrix();
+    push.color = color.color;
+    glm::vec3 elementPos = transform.position;
+    elementPos.y = 0.0f;
+    push.dist = 0.5 * glm::length(camPos - elementPos) * glm::length(camPos - elementPos) / 80.f;
 
     vkCmdPushConstants(frameInfo.commandBuffer, mPipelineLayout,
                        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0,

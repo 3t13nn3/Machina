@@ -2,13 +2,18 @@
 
 #include "../../vulkan/uniform_buffer_type.hpp"
 
+#include "../Base/centralizer.hpp"
 #include "../Base/system.hpp"
+
+#include "../Components/camera.hpp"
+#include "../Components/transform.hpp"
 
 #include "../../vulkan/device.hpp"
 #include "../../vulkan/frame_info.hpp"
 #include "../../vulkan/pipeline.hpp"
 
 // std
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -33,6 +38,7 @@ protected:
   void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
   virtual void createPipeline(VkRenderPass renderPass);
   void initPipeline(VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
+  static const std::map<float, ecs::Entity> getSortedEntities(const std::set<Entity> &entities);
 
   Device &mVuDevice;
   std::unique_ptr<Pipeline> mVuPipeline;
