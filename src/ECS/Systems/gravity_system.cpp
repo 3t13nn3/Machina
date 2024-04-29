@@ -12,7 +12,7 @@ void GravitySystem::update(FrameInfo &frameInfo) {
     auto &rigidBody = gCentralizer->getComponent<ecs::RigidBody>(e);
     auto &transform = gCentralizer->getComponent<ecs::Transform>(e);
 
-    rigidBody.acceleration += gravity.force * rigidBody.mass;
+    rigidBody.acceleration -= gravity.force * rigidBody.mass;
     rigidBody.velocity += rigidBody.acceleration * frameInfo.frameTime;
     transform.position += rigidBody.velocity * frameInfo.frameTime;
     // rigidBody.acceleration = glm::vec3{0.f, 0.f, 0.f};

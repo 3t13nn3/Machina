@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../vulkan/model.hpp"
 #include "../../vulkan/uniform_buffer_type.hpp"
 
 #include "../Base/centralizer.hpp"
@@ -30,6 +31,7 @@ public:
   void update(FrameInfo &frameInfo, GlobalUbo &ubo) override;
 
 protected:
+  void createPipelineConfigInfo(PipelineConfigInfo &configInfo);
   void createPipeline(VkRenderPass renderPass) override;
 };
 } // namespace ecs

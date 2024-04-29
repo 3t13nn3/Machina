@@ -25,7 +25,7 @@ void CameraSystem::setPerspectiveProjection(float fovy, float aspect, float near
     const float tanHalfFovy = tan(fovy / 2.f);
     cam.projectionMatrix = glm::mat4{0.0f};
     cam.projectionMatrix[0][0] = 1.f / (aspect * tanHalfFovy);
-    cam.projectionMatrix[1][1] = 1.f / (tanHalfFovy);
+    cam.projectionMatrix[1][1] = 1.f / (tanHalfFovy) * -1; // FIX THE VULKAN CORE Y AXE WITH -1
     cam.projectionMatrix[2][2] = far / (far - near);
     cam.projectionMatrix[2][3] = 1.f;
     cam.projectionMatrix[3][2] = -(far * near) / (far - near);

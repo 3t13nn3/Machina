@@ -84,9 +84,14 @@ void App::createEntities() {
   {
     ecs::Entity e = gCentralizer->createEntity();
     gCentralizer->addComponent(e,
-                               ecs::Transform{{-.5f, .5f, 0.f}, {0.f, 0.f, 0.f}, {3.f, 1.5f, 3.f}});
-    std::shared_ptr<Model> currentModel =
-        Model::createModelFromFile(mVuDevice, "models/flat_vase.obj");
+                               ecs::Transform{{-.5f, .5f, 0.f}, {0.f, 0.f, 0.f}, {3.f, 3.f, 3.f}});
+    std::shared_ptr<Model> currentModel = Model::createModelFromFile(mVuDevice, "models/Tree.obj");
+    gCentralizer->addComponent(e, ecs::Model{std::move(currentModel)});
+
+    e = gCentralizer->createEntity();
+    gCentralizer->addComponent(
+        e, ecs::Transform{{-1.5f, 1.5f, 1.f}, {0.f, 0.f, 0.f}, {1.f, 1.f, 1.f}});
+    currentModel = Model::createModelFromFile(mVuDevice, "models/cube.obj");
     gCentralizer->addComponent(e, ecs::Model{std::move(currentModel)});
 
     std::random_device rd;
@@ -95,7 +100,7 @@ void App::createEntities() {
     std::uniform_real_distribution<float> dis2(.5f, .05f);
     std::uniform_real_distribution<float> dis3(-5.f, 5.f);
 
-    currentModel = Model::createModelFromFile(mVuDevice, "models/cube.obj");
+    currentModel = Model::createModelFromFile(mVuDevice, "models/Tree.obj");
     for (size_t i{0}; i < 30; ++i) {
       for (size_t j{0}; j < 30; ++j) {
         float z = dis(gen);
@@ -113,8 +118,8 @@ void App::createEntities() {
     }
 
     e = gCentralizer->createEntity();
-    gCentralizer->addComponent(e,
-                               ecs::Transform{{0.f, .5f, 20.f}, {0.f, 0.f, 0.f}, {3.f, 1.f, 3.f}});
+    gCentralizer->addComponent(
+        e, ecs::Transform{{0.f, .5f, 20.f}, {0.f, 0.f, 0.f}, {300.f, 1.f, 300.f}});
     currentModel = Model::createModelFromFile(mVuDevice, "models/quad.obj");
     gCentralizer->addComponent(e, ecs::Model{std::move(currentModel)});
   }
@@ -131,7 +136,7 @@ void App::createEntities() {
           glm::mat4(1.f), (i * glm::two_pi<float>()) / lightColors.size(), {0.f, -1.f, 0.f});
       ecs::Entity e = gCentralizer->createEntity();
       gCentralizer->addComponent(
-          e, ecs::Transform{glm::vec3(rotateLight * glm::vec4(-1.f, -1.f, -1.f, 1.f)),
+          e, ecs::Transform{glm::vec3(rotateLight * glm::vec4(-1.f, 5.f, -1.f, 1.f)),
                             {0.f, 0.f, 0.f},
                             {0.1f, 0.1f, 0.1f}});
       gCentralizer->addComponent(e, ecs::Color{lightColors[i]});
