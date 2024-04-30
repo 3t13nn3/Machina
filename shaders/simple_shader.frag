@@ -32,6 +32,18 @@ layout(push_constant) uniform Push {
 }
 push;
 
+vec3 calculateDirectionalLight(vec3 normal, vec3 fragPos, vec3 viewDirection) {
+  vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
+
+  vec4 color = vec4(1.0, 0.8, 0.5, .8);
+  vec3 intensity = (color.rgb * color.w);
+
+  float cosAngIncidence = max(dot(normal, lightDir), 0.0);
+  vec3 diffuse = intensity * cosAngIncidence;
+
+  return diffuse;
+}
+
 vec3 calculatePointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDirection) {
   // DIFF
   // Direction from fragment to light
@@ -71,6 +83,8 @@ void main() {
   for (int i = 0; i < ubo.numLights; ++i) {
     diffSpec += calculatePointLight(ubo.pointLights[i], surfaceNormal, fragPosWorld, viewDirection);
   }
+
+  diffSpec += calculateDirectionalLight(surfaceNormal, fragPosWorld, viewDirection);
 
   // Final color
   vec3 finalColor = fragColor * (ambientLight + diffSpec);
