@@ -58,8 +58,12 @@ void SimpleRenderSystem::render(FrameInfo &frameInfo) {
     push.color = color.color;
     glm::vec3 elementPos = transform.position;
     elementPos.y = 0.0f;
-    push.dist = 0.5 * glm::length(camPos - elementPos) * glm::length(camPos - elementPos) / 80.f;
-
+    if (color.color != glm::vec3{1.f}) {
+      push.dist =
+          0.5 * glm::length(camPos - elementPos) * glm::length(camPos - elementPos) / 80.f + 0.1f;
+    } else {
+      push.dist = 1.f;
+    }
     vkCmdPushConstants(frameInfo.commandBuffer, mPipelineLayout,
                        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0,
                        sizeof(SimplePushConstantData), &push);

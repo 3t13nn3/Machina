@@ -7,6 +7,7 @@
 #include "ECS/Systems/point_light_system.hpp"
 #include "ECS/Systems/simple_render_system.hpp"
 #include "vulkan/buffer.hpp"
+#include "vulkan/shadow_map.hpp"
 
 // libs
 #define GLM_FORCE_RADIANS
@@ -95,41 +96,34 @@ void App::createEntities() {
     for (size_t i{0}; i < 40; ++i) {
       for (size_t j{0}; j < 40; ++j) {
         float h = col(gen) * 10;
+        float xOff = (col(gen) - 0.5) * 10.f;
+        float zOff = (col(gen) - 0.5) * 10.f;
         ecs::Entity treeEntity = gCentralizer->createEntity();
-        gCentralizer->addComponent(treeEntity, ecs::Transform{{i * 14, .5f + h, j * 14},
-                                                              {0.f, col(gen) * 360.f, 0.f},
-                                                              {3.f, 3.f, 3.f}});
+        gCentralizer->addComponent(
+            treeEntity,
+            ecs::Transform{{i * 10 + xOff, 0.4f + h, j * 10 + zOff},
+                           {col(gen) * glm::radians(10.f), col(gen) * glm::radians(360.f), 0.f},
+                           {3.f, 3.f, 3.f}});
 
         gCentralizer->addComponent(treeEntity, ecs::Model{treeModel});
         gCentralizer->addComponent(treeEntity, ecs::Color{{col(gen), col(gen), col(gen)}});
 
         ecs::Entity cubeEntity = gCentralizer->createEntity();
         gCentralizer->addComponent(cubeEntity, ecs::Model{cubeModel});
-        gCentralizer->addComponent(
-            cubeEntity,
-            ecs::Transform{{i * 14, -.5f + h, j * 14}, {0.f, 0.f, 0.f}, {1.f, 1.f, 1.f}});
+        gCentralizer->addComponent(cubeEntity,
+                                   ecs::Transform{{i * 10 + xOff, -.5f + h, j * 10 + zOff},
+                                                  {0.f, 0.f, 0.f},
+                                                  {1.f, 1.f, 1.f}});
         gCentralizer->addComponent(cubeEntity, ecs::Color{{col(gen), col(gen), col(gen)}});
       }
     }
 
-    std::shared_ptr<Model> currentModel = Model::createModelFromFile(mVuDevice, "models/Tree.obj");
-    for (size_t i{0}; i < 4; ++i) {
-      for (size_t j{0}; j < 4; ++j) {
-        float z = dis(gen);
-        ecs::Entity e = gCentralizer->createEntity();
-        gCentralizer->addComponent(
-            e, ecs::Transform{
-                   {(j % 2 ? (i + 0.5f) : (i)) - 15.f, (i % 2 ? j : (j + 0.5f)) - 15.f, 15.f + z},
-                   {i, j, i * j},
-                   {j % 4 ? (0.25) : (0.125), i % 4 ? (0.125) : (0.25), 0.25f}});
-        //{4.f, 2.f, 4.f}});
-        gCentralizer->addComponent(e, ecs::Model{currentModel});
-        gCentralizer->addComponent(e, ecs::Gravity{{0.f, ecs::GRAVITY_CONSTANT, 0.f}});
-        gCentralizer->addComponent(e, ecs::RigidBody{{}, {}, dis2(gen)});
-        gCentralizer->addComponent(e, ecs::Color{{0.5f + dis3(gen) / 10.f, 0.5f + dis3(gen) / 10.f,
-                                                  0.5f + dis3(gen) / 10.f}});
-      }
-    }
+    ecs::Entity floor = gCentralizer->createEntity();
+    std::shared_ptr<Model> currentModel = Model::createModelFromFile(mVuDevice, "models/cube.obj");
+    gCentralizer->addComponent(floor, ecs::Model{std::move(currentModel)});
+    gCentralizer->addComponent(
+        floor, ecs::Transform{{200.f, -2.f, 200.f}, {0.f, 0.f, 0.f}, {400.f, 1.f, 400.f}});
+    gCentralizer->addComponent(floor, ecs::Color{{1.f, 1.f, 1.f}});
   }
 
   // Light
@@ -177,6 +171,9 @@ void App::run() {
   registerComponents();
   setSignatures();
   createEntities();
+
+  ShadowMap sm(mVuDevice);
+  sm.createShadowMapRessources();
 
   auto currentTime = std::chrono::high_resolution_clock::now();
   auto startTime = currentTime;
