@@ -28,10 +28,11 @@ namespace vu {
 
 App::App() {
   // Init the UniformBufferManager first
-  mUniformBufferManager = UniformBufferManager::Builder(mVuDevice)
-                              .addUniformBuffer<GlobalUbo>(VK_SHADER_STAGE_ALL_GRAPHICS)
-                              .addUniformBuffer<float>(VK_SHADER_STAGE_ALL_GRAPHICS)
-                              .build();
+  mUniformManager = UniformManager::Builder(mVuDevice)
+                        .addUniformBuffer<GlobalUbo>(VK_SHADER_STAGE_ALL_GRAPHICS)
+                        .addUniformBuffer<float>(VK_SHADER_STAGE_ALL_GRAPHICS)
+                        .addUniformSampler(VK_SHADER_STAGE_ALL_GRAPHICS)
+                        .build();
 }
 
 App::~App() {}
@@ -152,12 +153,12 @@ void App::run() {
   std::shared_ptr<ecs::SimpleRenderSystem> simpleRenderSystem =
       gCentralizer->registerSystem<ecs::SimpleRenderSystem>(
           mVuDevice, mVuRenderer.getSwapChainRenderPass(),
-          mUniformBufferManager->getDescriptorSetLayout());
+          mUniformManager->getDescriptorSetLayout());
 
   std::shared_ptr<ecs::PointLightSystem> pointLightSystem =
       gCentralizer->registerSystem<ecs::PointLightSystem>(
           mVuDevice, mVuRenderer.getSwapChainRenderPass(),
-          mUniformBufferManager->getDescriptorSetLayout());
+          mUniformManager->getDescriptorSetLayout());
 
   std::shared_ptr<ecs::CameraSystem> cameraSystem =
       gCentralizer->registerSystem<ecs::CameraSystem>();
@@ -190,7 +191,7 @@ void App::run() {
     if (auto commandBuffer = mVuRenderer.beginFrame()) {
       int frameIndex = mVuRenderer.getFrameIndex();
       FrameInfo frameInfo{frameIndex, frameTime, commandBuffer,
-                          mUniformBufferManager->getGlobalDescriptorSets()[frameIndex]};
+                          mUniformManager->getGlobalDescriptorSets()[frameIndex]};
 
       gravitySystem->update(frameInfo);
 
@@ -206,8 +207,8 @@ void App::run() {
           std::chrono::duration<float, std::chrono::seconds::period>(newTime - startTime).count();
 
       // update ubo
-      mUniformBufferManager->update(0, ubo, frameIndex);
-      mUniformBufferManager->update(1, timeUboData, frameIndex);
+      mUniformManager->update(0, ubo, frameIndex);
+      mUniformManager->update(1, timeUboData, frameIndex);
 
       // render
       mVuRenderer.beginSwapChainRenderPass(commandBuffer);

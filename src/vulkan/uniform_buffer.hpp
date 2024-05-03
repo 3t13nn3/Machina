@@ -9,6 +9,20 @@
 
 namespace vu {
 
+class UniformSampler {
+public:
+  UniformSampler(Device &device, VkShaderStageFlagBits shaderStageType)
+      : mVuDevice(device), mSamplers(SwapChain::MAX_FRAMES_IN_FLIGHT),
+        mShaderStageType(shaderStageType) {}
+  void update(const VkSampler &data, const size_t frameIndex) {}
+  const VkShaderStageFlagBits &getShaderStageType() const { return mShaderStageType; }
+
+private:
+  Device &mVuDevice;
+  std::vector<VkSampler> mSamplers;
+  VkShaderStageFlagBits mShaderStageType;
+};
+
 class IUniformBuffer {
 public:
   virtual ~IUniformBuffer() = default;
@@ -51,7 +65,7 @@ private:
   VkShaderStageFlagBits mShaderStageType;
 };
 
-class UniformBufferManager {
+class UniformManager {
 public:
   class Builder {
   public:
@@ -62,25 +76,36 @@ public:
       return *this;
     }
 
-    std::unique_ptr<UniformBufferManager> build() {
-      return std::make_unique<UniformBufferManager>(mVuDevice, std::move(mUniformBuffers));
+    Builder &addUniformSampler(VkShaderStageFlagBits shaderStageType) {
+      mUniformSamplers.emplace_back(std::make_unique<UniformSampler>(mVuDevice, shaderStageType));
+      return *this;
+    }
+
+    std::unique_ptr<UniformManager> build() {
+      return std::make_unique<UniformManager>(mVuDevice, std::move(mUniformBuffers),
+                                              std::move(mUniformSamplers));
     }
 
   private:
     Device &mVuDevice;
     std::vector<std::unique_ptr<IUniformBuffer>> mUniformBuffers;
+    std::vector<std::unique_ptr<UniformSampler>> mUniformSamplers;
   };
 
-  UniformBufferManager(Device &device,
-                       std::vector<std::unique_ptr<IUniformBuffer>> &&uniformBuffers)
+  UniformManager(Device &device, std::vector<std::unique_ptr<IUniformBuffer>> &&uniformBuffers,
+                 std::vector<std::unique_ptr<UniformSampler>> &&uniformSamplers)
       : mVuDevice(device), mGlobalDescriptorSets(SwapChain::MAX_FRAMES_IN_FLIGHT) {
 
     mUniformBuffers = std::move(uniformBuffers);
+    mUniformSamplers = std::move(uniformSamplers);
 
     mGlobalPool = DescriptorPool::Builder(mVuDevice)
-                      .setMaxSets(SwapChain::MAX_FRAMES_IN_FLIGHT * mUniformBuffers.size())
+                      .setMaxSets(SwapChain::MAX_FRAMES_IN_FLIGHT *
+                                  (mUniformBuffers.size() + mUniformSamplers.size()))
                       .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                                    SwapChain::MAX_FRAMES_IN_FLIGHT * mUniformBuffers.size())
+                      .addPoolSize(VK_DESCRIPTOR_TYPE_SAMPLER,
+                                   SwapChain::MAX_FRAMES_IN_FLIGHT * mUniformSamplers.size())
                       .build();
 
     DescriptorSetLayout::Builder descriptorSetLayout = DescriptorSetLayout::Builder(mVuDevice);
@@ -90,8 +115,13 @@ public:
                                      ub->getShaderStageType());
       ++curr;
     }
+    for (const auto &us : mUniformSamplers) {
+      descriptorSetLayout.addBinding(curr, VK_DESCRIPTOR_TYPE_SAMPLER, us->getShaderStageType());
+      ++curr;
+    }
     mGlobalSetLayout = descriptorSetLayout.build();
 
+    // NEED TO CHANGE THERE
     for (int i = 0; i < mGlobalDescriptorSets.size(); i++) {
       DescriptorWriter descriptorWriter(*mGlobalSetLayout, *mGlobalPool);
       // Need to create a temporary vector to handle reference during
@@ -128,10 +158,13 @@ public:
 
 private:
   Device &mVuDevice;
+
   std::unique_ptr<DescriptorPool> mGlobalPool{};
   std::unique_ptr<DescriptorSetLayout> mGlobalSetLayout;
   std::vector<VkDescriptorSet> mGlobalDescriptorSets;
+
   std::vector<std::unique_ptr<IUniformBuffer>> mUniformBuffers;
+  std::vector<std::unique_ptr<UniformSampler>> mUniformSamplers;
 };
 
 } // namespace vu

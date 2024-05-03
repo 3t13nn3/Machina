@@ -35,6 +35,6 @@ private:
   Device mVuDevice{mVuWindow};
   Renderer mVuRenderer{mVuWindow, mVuDevice};
 
-  std::unique_ptr<UniformBufferManager> mUniformBufferManager{};
+  std::unique_ptr<UniformManager> mUniformManager{};
 };
 } // namespace vu
