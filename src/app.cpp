@@ -28,11 +28,15 @@ namespace vu {
 
 App::App() {
   // Init the UniformBufferManager first
-  mUniformManager = UniformManager::Builder(mVuDevice)
-                        .addUniformBuffer<GlobalUbo>(VK_SHADER_STAGE_ALL_GRAPHICS)
-                        .addUniformBuffer<float>(VK_SHADER_STAGE_ALL_GRAPHICS)
-                        .addUniformSampler(VK_SHADER_STAGE_ALL_GRAPHICS)
-                        .build();
+  ShadowMap sm(mVuDevice);
+  sm.createShadowMapRessources();
+
+  mUniformManager =
+      UniformManager::Builder(mVuDevice)
+          .addUniformBuffer<GlobalUbo>(VK_SHADER_STAGE_ALL_GRAPHICS)
+          .addUniformBuffer<float>(VK_SHADER_STAGE_ALL_GRAPHICS)
+          .addUniformSampler(VK_SHADER_STAGE_ALL_GRAPHICS, sm.getImageView(), sm.getSampler())
+          .build();
 }
 
 App::~App() {}
@@ -172,9 +176,6 @@ void App::run() {
   registerComponents();
   setSignatures();
   createEntities();
-
-  ShadowMap sm(mVuDevice);
-  sm.createShadowMapRessources();
 
   auto currentTime = std::chrono::high_resolution_clock::now();
   auto startTime = currentTime;

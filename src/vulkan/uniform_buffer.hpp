@@ -11,15 +11,30 @@ namespace vu {
 
 class UniformSampler {
 public:
-  UniformSampler(Device &device, VkShaderStageFlagBits shaderStageType)
+  UniformSampler(Device &device, VkShaderStageFlagBits shaderStageType, VkImageView imageView,
+                 VkSampler sampler)
       : mVuDevice(device), mSamplers(SwapChain::MAX_FRAMES_IN_FLIGHT),
-        mShaderStageType(shaderStageType) {}
+        mImageView(SwapChain::MAX_FRAMES_IN_FLIGHT), mShaderStageType(shaderStageType) {
+    for (int i = 0; i < mSamplers.size(); i++) {
+      mSamplers[i] = sampler;
+      mImageView[i] = imageView;
+    }
+  }
+
   void update(const VkSampler &data, const size_t frameIndex) {}
   const VkShaderStageFlagBits &getShaderStageType() const { return mShaderStageType; }
+  const std::vector<VkSampler> &getSamplers() const { return mSamplers; }
+  const std::vector<VkImageView> &getImageView() const {
+    for (const auto &imageView : mImageView) {
+      std::cout << "ImageView: " << imageView << std::endl;
+    }
+    return mImageView;
+  }
 
 private:
   Device &mVuDevice;
   std::vector<VkSampler> mSamplers;
+  std::vector<VkImageView> mImageView;
   VkShaderStageFlagBits mShaderStageType;
 };
 
@@ -76,8 +91,12 @@ public:
       return *this;
     }
 
-    Builder &addUniformSampler(VkShaderStageFlagBits shaderStageType) {
-      mUniformSamplers.emplace_back(std::make_unique<UniformSampler>(mVuDevice, shaderStageType));
+    Builder &addUniformSampler(VkShaderStageFlagBits shaderStageType, VkImageView imageView,
+                               VkSampler sampler) {
+      std::cout << "ICI" << std::endl;
+      mUniformSamplers.emplace_back(
+          std::make_unique<UniformSampler>(mVuDevice, shaderStageType, imageView, sampler));
+      std::cout << "ICI2" << std::endl;
       return *this;
     }
 
@@ -104,7 +123,7 @@ public:
                                   (mUniformBuffers.size() + mUniformSamplers.size()))
                       .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                                    SwapChain::MAX_FRAMES_IN_FLIGHT * mUniformBuffers.size())
-                      .addPoolSize(VK_DESCRIPTOR_TYPE_SAMPLER,
+                      .addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                                    SwapChain::MAX_FRAMES_IN_FLIGHT * mUniformSamplers.size())
                       .build();
 
@@ -115,23 +134,40 @@ public:
                                      ub->getShaderStageType());
       ++curr;
     }
+
     for (const auto &us : mUniformSamplers) {
-      descriptorSetLayout.addBinding(curr, VK_DESCRIPTOR_TYPE_SAMPLER, us->getShaderStageType());
+      descriptorSetLayout.addBinding(curr, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                                     us->getShaderStageType());
       ++curr;
     }
     mGlobalSetLayout = descriptorSetLayout.build();
 
     // NEED TO CHANGE THERE
+    std::cout << "Size of mGlobalDescriptorSets: " << mGlobalDescriptorSets.size() << std::endl;
+    std::cout << "Size of mUniformSamplers: " << mUniformSamplers.size() << std::endl;
+    std::cout << "Size of mUniformBuffers: " << mUniformBuffers.size() << std::endl;
     for (int i = 0; i < mGlobalDescriptorSets.size(); i++) {
       DescriptorWriter descriptorWriter(*mGlobalSetLayout, *mGlobalPool);
       // Need to create a temporary vector to handle reference during
       // writeBuffer() until the build function is called
       std::vector<VkDescriptorBufferInfo> bufferInfo(mUniformBuffers.size());
-
-      size_t curr = 0;
+      size_t currBuffer = 0;
       for (const auto &ub : mUniformBuffers) {
-        bufferInfo[curr] = ub->getBuffers()[i]->descriptorInfo();
-        descriptorWriter.writeBuffer(curr, &(bufferInfo[curr]));
+        bufferInfo[currBuffer] = ub->getBuffers()[i]->descriptorInfo();
+        descriptorWriter.writeBuffer(currBuffer, &(bufferInfo[currBuffer]));
+        ++currBuffer;
+      }
+
+      std::vector<VkDescriptorImageInfo> imageInfos(mUniformSamplers.size());
+      size_t currSampler = 0;
+      for (const auto &us : mUniformSamplers) {
+
+        imageInfos[currSampler].sampler = us->getSamplers()[i];
+        imageInfos[currSampler].imageView = us->getImageView()[i];
+        imageInfos[currSampler].imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+        // Keep the binding through every uniform type
+        descriptorWriter.writeImage(currBuffer + currSampler, &(imageInfos[currSampler]));
         ++curr;
       }
       descriptorWriter.build(mGlobalDescriptorSets[i]);

@@ -4,10 +4,10 @@ namespace vu {
 ShadowMap::ShadowMap(Device &device) : mVuDevice(device) {}
 
 ShadowMap::~ShadowMap() {
-  vkDestroyImageView(mVuDevice.device(), mImageView, nullptr);
-  vkDestroyImage(mVuDevice.device(), mImage, nullptr);
-  vkFreeMemory(mVuDevice.device(), mImageMemory, nullptr);
-  vkDestroySampler(mVuDevice.device(), mSampler, nullptr);
+  // vkDestroyImageView(mVuDevice.device(), mImageView, nullptr);
+  // vkDestroyImage(mVuDevice.device(), mImage, nullptr);
+  // vkFreeMemory(mVuDevice.device(), mImageMemory, nullptr);
+  // vkDestroySampler(mVuDevice.device(), mSampler, nullptr);
 }
 
 void ShadowMap::createShadowMapRessources(uint16_t width, uint16_t height) {
@@ -68,4 +68,8 @@ void ShadowMap::createShadowMapRessources(uint16_t width, uint16_t height) {
     throw std::runtime_error("failed to create texture sampler!");
   }
 }
+
+const VkImageView &ShadowMap::getImageView() const { return mImageView; }
+
+const VkSampler &ShadowMap::getSampler() const { return mSampler; }
 } // namespace vu

@@ -24,6 +24,8 @@ ubo;
 layout(set = 0, binding = 1) uniform TimeUbo { float timeElapsed; }
 timeUbo;
 
+layout(binding = 2) uniform sampler2D mySampler;
+
 layout(push_constant) uniform Push {
   mat4 modelMatrix;
   mat4 normalMatrix;
@@ -89,5 +91,7 @@ void main() {
   // Final color
   vec3 finalColor = fragColor * (ambientLight + diffSpec);
 
-  outColor = vec4(pow(finalColor, vec3(0.4545)), clamp(push.dist, 0.0, 1.0));
+  vec3 color = texture(mySampler, vec2(2048)).xyz;
+
+  outColor = vec4(pow(finalColor + color, vec3(0.4545)), clamp(push.dist, 0.0, 1.0));
 }

@@ -13,6 +13,8 @@ public:
   ShadowMap(Device &device);
   ~ShadowMap();
   void createShadowMapRessources(uint16_t width = 2048, uint16_t height = 2048);
+  const VkImageView &getImageView() const;
+  const VkSampler &getSampler() const;
 
 private:
   Device &mVuDevice;
