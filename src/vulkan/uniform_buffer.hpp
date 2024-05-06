@@ -164,7 +164,7 @@ public:
 
         imageInfos[currSampler].sampler = us->getSamplers()[i];
         imageInfos[currSampler].imageView = us->getImageView()[i];
-        imageInfos[currSampler].imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        imageInfos[currSampler].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
         // Keep the binding through every uniform type
         descriptorWriter.writeImage(currBuffer + currSampler, &(imageInfos[currSampler]));

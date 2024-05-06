@@ -63,6 +63,9 @@ public:
   void createImageWithInfo(const VkImageCreateInfo &imageInfo, VkMemoryPropertyFlags properties,
                            VkImage &image, VkDeviceMemory &imageMemory);
 
+  void transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout,
+                             uint32_t mipLevels);
+
   VkPhysicalDeviceProperties properties;
 
 private:

@@ -19,10 +19,10 @@ void ShadowMap::createShadowMapRessources(uint16_t width, uint16_t height) {
   imageInfo.extent.depth = 1;
   imageInfo.mipLevels = 1;
   imageInfo.arrayLayers = 1;
-  imageInfo.format = VK_FORMAT_D32_SFLOAT;
+  imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
   imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
   imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+  imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
   imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
   imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
   imageInfo.flags = 0;
@@ -30,12 +30,39 @@ void ShadowMap::createShadowMapRessources(uint16_t width, uint16_t height) {
   mVuDevice.createImageWithInfo(imageInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mImage,
                                 mImageMemory);
 
+  // Allouez et remplissez une mémoire tampon avec les données souhaitées
+  std::vector<uint32_t> image_data(width * height, 0xFF0000FF);
+  VkDeviceSize imageSize = sizeof(uint32_t) * width * height;
+  VkBuffer stagingBuffer;
+  VkDeviceMemory stagingBufferMemory;
+  mVuDevice.createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                         stagingBuffer, stagingBufferMemory);
+
+  // Copiez les données de l'hôte vers la mémoire tampon
+  void *data;
+  vkMapMemory(mVuDevice.device(), stagingBufferMemory, 0, imageSize, 0, &data);
+  memcpy(data, image_data.data(), (size_t)imageSize);
+  vkUnmapMemory(mVuDevice.device(), stagingBufferMemory);
+
+  mVuDevice.transitionImageLayout(mImage, VK_IMAGE_LAYOUT_UNDEFINED,
+                                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1);
+  mVuDevice.copyBufferToImage(stagingBuffer, mImage, width, height, 1);
+
+  // Transition de layout vers VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL pour une utilisation dans
+  // les shaders
+  mVuDevice.transitionImageLayout(mImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1);
+  // Nettoyez les ressources temporaires
+  vkDestroyBuffer(mVuDevice.device(), stagingBuffer, nullptr);
+  vkFreeMemory(mVuDevice.device(), stagingBufferMemory, nullptr);
+
   VkImageViewCreateInfo viewInfo{};
   viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
   viewInfo.image = mImage;
   viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-  viewInfo.format = VK_FORMAT_D32_SFLOAT;
-  viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+  viewInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+  viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
   viewInfo.subresourceRange.baseMipLevel = 0;
   viewInfo.subresourceRange.levelCount = 1;
   viewInfo.subresourceRange.baseArrayLayer = 0;
