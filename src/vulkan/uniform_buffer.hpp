@@ -24,12 +24,7 @@ public:
   void update(const VkSampler &data, const size_t frameIndex) {}
   const VkShaderStageFlagBits &getShaderStageType() const { return mShaderStageType; }
   const std::vector<VkSampler> &getSamplers() const { return mSamplers; }
-  const std::vector<VkImageView> &getImageView() const {
-    for (const auto &imageView : mImageView) {
-      std::cout << "ImageView: " << imageView << std::endl;
-    }
-    return mImageView;
-  }
+  const std::vector<VkImageView> &getImageView() const { return mImageView; }
 
 private:
   Device &mVuDevice;
@@ -93,10 +88,8 @@ public:
 
     Builder &addUniformSampler(VkShaderStageFlagBits shaderStageType, VkImageView imageView,
                                VkSampler sampler) {
-      std::cout << "ICI" << std::endl;
       mUniformSamplers.emplace_back(
           std::make_unique<UniformSampler>(mVuDevice, shaderStageType, imageView, sampler));
-      std::cout << "ICI2" << std::endl;
       return *this;
     }
 
@@ -142,10 +135,6 @@ public:
     }
     mGlobalSetLayout = descriptorSetLayout.build();
 
-    // NEED TO CHANGE THERE
-    std::cout << "Size of mGlobalDescriptorSets: " << mGlobalDescriptorSets.size() << std::endl;
-    std::cout << "Size of mUniformSamplers: " << mUniformSamplers.size() << std::endl;
-    std::cout << "Size of mUniformBuffers: " << mUniformBuffers.size() << std::endl;
     for (int i = 0; i < mGlobalDescriptorSets.size(); i++) {
       DescriptorWriter descriptorWriter(*mGlobalSetLayout, *mGlobalPool);
       // Need to create a temporary vector to handle reference during

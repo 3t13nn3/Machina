@@ -12,16 +12,28 @@ class ShadowMap {
 public:
   ShadowMap(Device &device);
   ~ShadowMap();
-  void createShadowMapRessources(uint16_t width = 2048, uint16_t height = 2048);
+  void createShadowMapRessources();
   const VkImageView &getImageView() const;
   const VkSampler &getSampler() const;
 
 private:
+  void createRenderPass();
+  void createFramebuffers();
+  void createSemaphore();
+  void submitToQueue(VkCommandBuffer commandBuffer);
+
   Device &mVuDevice;
   VkImage mImage;
   VkImageView mImageView;
   VkDeviceMemory mImageMemory;
   VkSampler mSampler;
+
+  VkRenderPass mRenderPass;
+  VkFramebuffer mFrameBuffer;
+  VkSemaphore mSignalSemaphore;
+
+  uint16_t mWidth = 2048;
+  uint16_t mHeight = 2048;
 };
 
 } // namespace vu

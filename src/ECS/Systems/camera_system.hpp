@@ -16,11 +16,13 @@ namespace ecs {
 class CameraSystem : public System {
 
 public:
-  void update(GlobalUbo &ubo, float aspect);
+  void lookAt(Entity cameraEntity, const glm::vec3 &direction);
 
-  void setPerspectiveProjection(float fovy, float aspect, float near, float far);
+  void update(GlobalUbo &ubo, float aspect, Entity e);
+
+  void setPerspectiveProjection(float fovy, float aspect, float near, float far, Entity e);
 
 private:
-  void setViewYXZ();
+  void setViewYXZ(Entity e);
 };
 } // namespace ecs

@@ -26,18 +26,7 @@ extern std::unique_ptr<ecs::Centralizer> gCentralizer;
 
 namespace vu {
 
-App::App() {
-  // Init the UniformBufferManager first
-  ShadowMap sm(mVuDevice);
-  sm.createShadowMapRessources();
-
-  mUniformManager =
-      UniformManager::Builder(mVuDevice)
-          .addUniformBuffer<GlobalUbo>(VK_SHADER_STAGE_ALL_GRAPHICS)
-          .addUniformBuffer<float>(VK_SHADER_STAGE_ALL_GRAPHICS)
-          .addUniformSampler(VK_SHADER_STAGE_ALL_GRAPHICS, sm.getImageView(), sm.getSampler())
-          .build();
-}
+App::App() {}
 
 App::~App() {}
 
@@ -81,9 +70,13 @@ void App::createEntities() {
   {
     ecs::Entity e = gCentralizer->createEntity();
     gCentralizer->addComponent(e, ecs::Camera{});
-    gCentralizer->addComponent(e, ecs::Transform{{0.f, 2.f, -2.5f}, {}, {}});
+    gCentralizer->addComponent(e, ecs::Transform{{1.f, 1.f, 1.5f}, {}, {}});
     // gCentralizer->addComponent(e, ecs::Gravity{{0.f, ecs::GRAVITY_CONSTANT, 0.f}});
     // gCentralizer->addComponent(e, ecs::RigidBody{{}, {}, 1.f});
+
+    e = gCentralizer->createEntity();
+    gCentralizer->addComponent(e, ecs::Camera{});
+    gCentralizer->addComponent(e, ecs::Transform{{0.f, 200.f, -2.5f}, {}, {}});
   }
 
   std::random_device rd;
@@ -153,6 +146,16 @@ void App::createEntities() {
 }
 
 void App::run() {
+  // Init the UniformBufferManager first
+  ShadowMap sm(mVuDevice);
+  sm.createShadowMapRessources();
+
+  mUniformManager =
+      UniformManager::Builder(mVuDevice)
+          .addUniformBuffer<GlobalUbo>(VK_SHADER_STAGE_ALL_GRAPHICS)
+          .addUniformBuffer<float>(VK_SHADER_STAGE_ALL_GRAPHICS)
+          .addUniformSampler(VK_SHADER_STAGE_ALL_GRAPHICS, sm.getImageView(), sm.getSampler())
+          .build();
 
   std::shared_ptr<ecs::SimpleRenderSystem> simpleRenderSystem =
       gCentralizer->registerSystem<ecs::SimpleRenderSystem>(
@@ -177,6 +180,8 @@ void App::run() {
   setSignatures();
   createEntities();
 
+  cameraSystem->lookAt(ecs::LIGHT_CAMERA_ENTITY, glm::vec3{1.f, -1.f, 1.f});
+
   auto currentTime = std::chrono::high_resolution_clock::now();
   auto startTime = currentTime;
   while (!mVuWindow.shouldClose()) {
@@ -199,8 +204,10 @@ void App::run() {
       // declare ubo
       GlobalUbo ubo{};
       float aspect = mVuRenderer.getAspectRatio();
-      cameraSystem->update(ubo, aspect);
+      cameraSystem->update(ubo, aspect, ecs::CAMERA_ENTITY);
 
+      GlobalUbo uboShadows{};
+      cameraSystem->update(uboShadows, aspect, ecs::LIGHT_CAMERA_ENTITY);
       // simpleRenderSystem->update(frameInfo, ubo);
       pointLightSystem->update(frameInfo, ubo);
 

@@ -67,6 +67,7 @@ public:
                              uint32_t mipLevels);
 
   VkPhysicalDeviceProperties properties;
+  VkQueue mGraphicsQueue;
 
 private:
   void createInstance();
@@ -94,7 +95,6 @@ private:
 
   VkDevice mDevice;
   VkSurfaceKHR mSurface;
-  VkQueue mGraphicsQueue;
   VkQueue mPresentQueue;
 
   const std::vector<const char *> mValidationLayers = {"VK_LAYER_KHRONOS_validation"};
