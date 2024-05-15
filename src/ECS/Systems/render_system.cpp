@@ -42,17 +42,26 @@ IRenderSystem::getSortedEntities(const std::set<Entity> &entities) {
   std::map<float, ecs::Entity> sorted;
 
   // Récupérer la caméra à partir du centralizer
-  auto &camera = gCentralizer->getComponent<ecs::Camera>(CAMERA_ENTITY);
-  // glm::vec3 viewDirection = camera.getViewDirection();
+  auto &cam = gCentralizer->getComponent<ecs::Camera>(CAMERA_ENTITY);
+  glm::vec3 camPos = cam.getPosition();
+  camPos.y = 0.0f;
 
   for (const Entity &e : entities) {
     auto &transform = gCentralizer->getComponent<ecs::Transform>(e);
-    glm::vec3 cameraToObject = transform.position - camera.getPosition();
-
-    // Vérifier si l'objet est devant la caméra (distance positive)
+    auto &color = gCentralizer->getComponent<ecs::Color>(e);
+    // glm::vec3 cameraToObject = transform.position - camera.getPosition();
+    glm::vec3 elementPos = transform.position;
+    elementPos.y = 0.0f;
+    float distance = 1.f;
     // if (glm::dot(cameraToObject, viewDirection) > 0) {
-    float distance = glm::length(cameraToObject);
-    sorted.emplace(distance, e);
+    if (color.color != glm::vec3{1.f}) {
+      distance =
+          0.5 * glm::length(camPos - elementPos) * glm::length(camPos - elementPos) / 80.f + 0.1f;
+    } else {
+      distance = 1.f;
+    }
+    sorted.emplace(distance + transform.position.y * 0.0001f,
+                   e); // transform.position.y * 0.0001f to ensure unicity on map
     //}
   }
 

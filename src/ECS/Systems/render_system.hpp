@@ -7,6 +7,7 @@
 
 #include "../Components/camera.hpp"
 #include "../Components/transform.hpp"
+#include "../Components/color.hpp"
 
 #include "../../vulkan/device.hpp"
 #include "../../vulkan/frame_info.hpp"

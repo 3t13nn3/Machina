@@ -1,7 +1,11 @@
 #include "shadow_map.hpp"
 #include <random>
 namespace vu {
-ShadowMap::ShadowMap(Device &device) : mVuDevice(device) {}
+ShadowMap::ShadowMap(Device &device) : mVuDevice(device) {
+  // createRenderPass();
+  // createFramebuffers();
+  // createSemaphore();
+}
 
 ShadowMap::~ShadowMap() {
   vkDestroyImageView(mVuDevice.device(), mImageView, nullptr);
@@ -82,7 +86,7 @@ void ShadowMap::createSemaphore() {
   semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
   if (vkCreateSemaphore(mVuDevice.device(), &semaphoreInfo, nullptr, &mSignalSemaphore) !=
       VK_SUCCESS) {
-    throw std::runtime_error("Failed to create semaphore!");
+    throw std::runtime_error("Failed to create semaphore for shadow map!");
   }
 }
 

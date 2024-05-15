@@ -91,8 +91,8 @@ void App::createEntities() {
     std::shared_ptr<Model> treeModel = Model::createModelFromFile(mVuDevice, "models/Tree.obj");
     std::shared_ptr<Model> cubeModel = Model::createModelFromFile(mVuDevice, "models/cube.obj");
 
-    for (size_t i{0}; i < 40; ++i) {
-      for (size_t j{0}; j < 40; ++j) {
+    for (size_t i{0}; i < 10; ++i) {
+      for (size_t j{0}; j < 10; ++j) {
         float h = col(gen) * 10;
         float xOff = (col(gen) - 0.5) * 10.f;
         float zOff = (col(gen) - 0.5) * 10.f;
