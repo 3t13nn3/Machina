@@ -91,11 +91,11 @@ void App::createEntities() {
     std::shared_ptr<Model> treeModel = Model::createModelFromFile(mVuDevice, "models/Tree.obj");
     std::shared_ptr<Model> cubeModel = Model::createModelFromFile(mVuDevice, "models/cube.obj");
 
-    for (size_t i{0}; i < 10; ++i) {
-      for (size_t j{0}; j < 10; ++j) {
-        float h = col(gen) * 10;
-        float xOff = (col(gen) - 0.5) * 10.f;
-        float zOff = (col(gen) - 0.5) * 10.f;
+    for (size_t i{0}; i < 5; ++i) {
+      for (size_t j{0}; j < 5; ++j) {
+        float h = col(gen) * 5;
+        float xOff = (col(gen) - 0.5) * 5.f;
+        float zOff = (col(gen) - 0.5) * 5.f;
         ecs::Entity treeEntity = gCentralizer->createEntity();
         gCentralizer->addComponent(
             treeEntity,
@@ -116,9 +116,30 @@ void App::createEntities() {
       }
     }
 
+    for (size_t i{0}; i < 10; ++i) {
+      for (size_t j{0}; j < 10; ++j) {
+        ecs::Entity cube = gCentralizer->createEntity();
+        gCentralizer->addComponent(cube, ecs::Model{cubeModel});
+
+        gCentralizer->addComponent(
+            cube, ecs::Transform{{i * 10, 30, j * 10},
+                                 {col(gen) * glm::radians(360.f), col(gen) * glm::radians(360.f),
+                                  col(gen) * glm::radians(360.f)},
+                                 {col(gen), col(gen), col(gen)}});
+        gCentralizer->addComponent(cube, ecs::Color{{col(gen), col(gen), col(gen)}});
+
+        gCentralizer->addComponent(cube, ecs::Gravity{{0.f, ecs::GRAVITY_CONSTANT, 0.f}});
+        gCentralizer->addComponent(cube, ecs::RigidBody{{}, {}, dis(gen) / 10.f});
+      }
+    }
+
+    ecs::Entity cube = gCentralizer->createEntity();
+    gCentralizer->addComponent(cube, ecs::Model{cubeModel});
+    gCentralizer->addComponent(cube, ecs::Transform{{0.f, 0.f, 0.f}, {}, {1.f, 1.f, 1.f}});
+    gCentralizer->addComponent(cube, ecs::Color{{col(gen), col(gen), col(gen)}});
+
     ecs::Entity floor = gCentralizer->createEntity();
-    std::shared_ptr<Model> currentModel = Model::createModelFromFile(mVuDevice, "models/cube.obj");
-    gCentralizer->addComponent(floor, ecs::Model{std::move(currentModel)});
+    gCentralizer->addComponent(floor, ecs::Model{std::move(cubeModel)});
     gCentralizer->addComponent(
         floor, ecs::Transform{{200.f, -2.f, 200.f}, {0.f, 0.f, 0.f}, {400.f, 1.f, 400.f}});
     gCentralizer->addComponent(floor, ecs::Color{{1.f, 1.f, 1.f}});

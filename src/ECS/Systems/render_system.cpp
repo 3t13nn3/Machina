@@ -38,20 +38,22 @@ void IRenderSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout) 
 }
 
 std::map<float, ecs::Entity> const
-IRenderSystem::getSortedEntities(const std::set<Entity> &entities) {
+IRenderSystem::getSortedEntities(const std::set<Entity> &entities, bool withY) {
   std::map<float, ecs::Entity> sorted;
 
   // Récupérer la caméra à partir du centralizer
   auto &cam = gCentralizer->getComponent<ecs::Camera>(CAMERA_ENTITY);
   glm::vec3 camPos = cam.getPosition();
-  camPos.y = 0.0f;
+  if (!withY)
+    camPos.y = 0.0f;
 
   for (const Entity &e : entities) {
     auto &transform = gCentralizer->getComponent<ecs::Transform>(e);
     auto &color = gCentralizer->getComponent<ecs::Color>(e);
     // glm::vec3 cameraToObject = transform.position - camera.getPosition();
     glm::vec3 elementPos = transform.position;
-    elementPos.y = 0.0f;
+    if (!withY)
+      elementPos.y = 0.0f;
     float distance = 1.f;
     // if (glm::dot(cameraToObject, viewDirection) > 0) {
     if (color.color != glm::vec3{1.f}) {

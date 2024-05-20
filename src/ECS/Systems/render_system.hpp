@@ -6,8 +6,8 @@
 #include "../Base/system.hpp"
 
 #include "../Components/camera.hpp"
-#include "../Components/transform.hpp"
 #include "../Components/color.hpp"
+#include "../Components/transform.hpp"
 
 #include "../../vulkan/device.hpp"
 #include "../../vulkan/frame_info.hpp"
@@ -39,7 +39,8 @@ protected:
   void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
   virtual void createPipeline(VkRenderPass renderPass);
   void initPipeline(VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
-  static const std::map<float, ecs::Entity> getSortedEntities(const std::set<Entity> &entities);
+  static const std::map<float, ecs::Entity> getSortedEntities(const std::set<Entity> &entities,
+                                                              bool withY);
 
   Device &mVuDevice;
   std::unique_ptr<Pipeline> mVuPipeline;

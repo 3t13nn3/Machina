@@ -40,7 +40,7 @@ void SimpleRenderSystem::render(FrameInfo &frameInfo) {
   vkCmdBindDescriptorSets(frameInfo.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout,
                           0, 1, &frameInfo.globalDescriptorSet, 0, nullptr);
 
-  std::map<float, ecs::Entity> sorted = getSortedEntities(mEntities);
+  std::map<float, ecs::Entity> sorted = getSortedEntities(mEntities, false);
 
   auto &cam = gCentralizer->getComponent<ecs::Camera>(CAMERA_ENTITY);
   glm::vec3 camPos = cam.getPosition();

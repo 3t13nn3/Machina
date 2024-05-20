@@ -91,8 +91,9 @@ void main() {
   // Final color
   vec3 finalColor = fragColor * (ambientLight + diffSpec);
 
-  vec3 shadow = texture(mySampler, fragPosWorld.xy / 2048).rgb;
+  //vec3 shadow = texture(mySampler, fragPosWorld.xy / 2048).rgb;
 
-  outColor = vec4(pow(mix(finalColor, shadow, 0.5), vec3(0.4545)), clamp(push.dist, 0.0, 1.0));
+  //outColor = vec4(pow(mix(finalColor, shadow, 0.5), vec3(0.4545)), clamp(push.dist, 0.0, 1.0));
+  outColor = vec4(pow(finalColor, vec3(0.4545)), clamp(push.dist, 0.0, 1.0));
   // outColor = vec4(color, 1.0);
 }

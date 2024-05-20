@@ -61,7 +61,7 @@ void PointLightSystem::update(FrameInfo &frameInfo, GlobalUbo &ubo) {
 }
 
 void PointLightSystem::render(FrameInfo &frameInfo) {
-  std::map<float, ecs::Entity> sorted = getSortedEntities(mEntities);
+  std::map<float, ecs::Entity> sorted = getSortedEntities(mEntities, true);
 
   mVuPipeline->bind(frameInfo.commandBuffer);
 
